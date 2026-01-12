@@ -129,7 +129,7 @@ async def login(
         # Create access token
         access_token = create_access_token(
             data={
-                "user_id": user.user_id,
+                "sub": user.user_id,
                 "email": user.email,
                 "role": user.role
             }
