@@ -7,6 +7,7 @@ import { Theme } from "../models/types";
 interface ThemeContextProps {
     theme: Theme,
     updateTheme: (theme: Theme) => void;
+    toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
@@ -48,9 +49,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         });
     }
 
+    const toggleTheme = () => {
+        updateTheme(theme === "light" ? "dark" : "light");
+    }
+
     const value : ThemeContextProps = useMemo(() =>({
         theme,
-        updateTheme
+        updateTheme,
+        toggleTheme
     }), [theme]);
 
     return (

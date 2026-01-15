@@ -2,23 +2,21 @@
 
 import { useTheme } from "@/context/theme-context";
 import { Logo } from "@/components/ui/logo";
-import { LoginForm } from "@/components/login-form";
-import { toast } from "sonner";
+import { SignUpForm } from "@/components/signup-form";
 
-const LoginPage = () => {
+const SignUpPage = () => {
     const {theme, toggleTheme} = useTheme();
 
     const processLogin = (email: string, password: string) => {
-        // Add login logic here
-        toast.success("Login clicked");
+        
     }
 
     return (
-        <div className="bg-primary w-full min-h-screen flex items-center justify-center">
+        <div className="bg-primary w-full min-h-screen flex items-center justify-center py-4">
             <button className="fixed top-20 right-20 hover:text-(--primary)" onClick={toggleTheme}>Toggle theme</button>
             <div className="flex flex-col gap-8">
-                <Logo size="xl" showText={true} />
-                <LoginForm
+                {/* <Logo size="xl" showText={true} /> */}
+                <SignUpForm
                     onLogin={processLogin}
                 />
             </div>
@@ -26,4 +24,4 @@ const LoginPage = () => {
     )
 }
 
-export default LoginPage;
+export default SignUpPage;
