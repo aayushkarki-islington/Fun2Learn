@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { LogoSize } from "@/models/types";
+import { useTheme } from "@/context/theme-context";
+import { Theme } from "@/models/types";
 
 interface LogoProps {
     size?: LogoSize;
@@ -23,18 +27,22 @@ const getSize = (size: LogoSize): LogoConstraints => {
     }
 }
 
-const getLogoFile = (showText: boolean, theme: string) => {
-    if(!showText) return "logo/logo-default.svg"
+const getLogoFile = (showText: boolean, theme: Theme) => {
+    if(!showText) return "logo/logo-default.svg";
+
+    return `logo/logo-text-${theme}.svg`;
 }
 
 export const Logo = ({
     size = "md",
-    showText
+    showText = false
 }: LogoProps) => {
-    const constraints = getSize(size)
+    const { theme } = useTheme();
+    const constraints = getSize(size);
+    const logoFile = getLogoFile(showText, theme);
     return(
         <Image
-            src="logo/logo-default.svg"
+            src={logoFile}
             alt="Fun2Learn Logo"
             width={constraints?.width}
             height={constraints?.height}

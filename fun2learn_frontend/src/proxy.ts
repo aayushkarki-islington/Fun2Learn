@@ -18,13 +18,11 @@ const NON_GATED_PATHS = [
 ]
 
 const STATIC_PATHS = [
-    "/",
-    ".",
     "/_next",
-    "/favicon.ico"
+    "/favicon.ico",
 ]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     // Bypass routes that don't need verification
@@ -33,7 +31,10 @@ export async function middleware(request: NextRequest) {
     }
 
     // Return static files path without blockers
-    if(STATIC_PATHS.some((path) => pathname.startsWith(path))){
+    if(
+        STATIC_PATHS.some((path) => pathname.startsWith(path) ||
+        pathname.includes(".")
+    )){
         return NextResponse.next();
     }
 
