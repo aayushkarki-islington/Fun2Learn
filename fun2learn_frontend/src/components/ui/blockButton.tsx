@@ -4,6 +4,9 @@ interface ButtonProps {
   type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
   className?: string;
   text: string;
+  isLoading?: boolean;
+  loadingText?: string;
+  disabled?: boolean;
   onClick?: () => void;
 }
 
@@ -11,6 +14,9 @@ const BlockButton = ({
   type = "button",
   className = "",
   text,
+  isLoading = false,
+  loadingText,
+  disabled = false,
   onClick,
 }: ButtonProps) => {
   return (
@@ -22,17 +28,19 @@ const BlockButton = ({
         onClick={onClick}
         className={`
           relative z-10 w-full rounded-xl
-          bg-gradient
+          ${(isLoading || disabled) ?
+            "cursor-not-allowed bg-gray-500 opacity-60" : 
+            "cursor-pointer bg-gradient border-b-8 border-[#292D65] active:mt-2"
+          }
           px-4 py-3 text-white
           transition-transform duration-150
-          border-b-8 border-[#292D65]
           active:border-b-0
-          active:mt-2
-          cursor-pointer
+          ${(!isLoading && !disabled) && ""}
           ${className}
         `}
+        disabled={disabled || isLoading}
       >
-        {text}
+        {(isLoading && loadingText) ? loadingText : text}
       </button>
     </div>
   );

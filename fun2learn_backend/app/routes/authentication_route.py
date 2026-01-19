@@ -36,6 +36,7 @@ async def signup(
     - **password**: User password (will be hashed)
     - **full_name**: User's full name
     - **birthday**: User's date of birth
+    - **gender**: User's gender
     - **role**: User role ("student" | "tutor") (default: "student")
     """
     logger.info(f"Signup attempt for email: {request.email}")
@@ -53,18 +54,16 @@ async def signup(
         # Hash the password
         hashed_password = hash_password(request.password)
 
-        # Calculate age from birthday
-        age = calculate_age(request.birthday)
-
         # Create new user
         user_id = str(uuid.uuid4())
         new_user = User(
             user_id=user_id,
             full_name=request.full_name,
-            age=age,
+            birthdate=request.birthday,
             email=request.email,
             password=hashed_password,
-            role=request.role
+            role=request.role,
+            gender=request.gender
         )
 
         db.add(new_user)
@@ -147,7 +146,7 @@ async def login(
                 "email": user.email,
                 "full_name": user.full_name,
                 "role": user.role,
-                "age": user.age,
+                "birthdate": user.birthdate,
                 "image_path": user.image_path
             }
         )

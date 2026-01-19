@@ -7,7 +7,8 @@ class SignUpRequest(BaseModel):
     password: str
     full_name: str
     birthday: date
-    role: Literal['student', 'tutor']
+    gender: str
+    role: Literal['learner', 'tutor']
 
 class SignInRequest(BaseModel):
     email: str

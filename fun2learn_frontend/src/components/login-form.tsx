@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface LoginFormProps {
+    isLoggingIn: boolean;
     onLogin: (email: string, password: string) => void;
 }
 
 export const LoginForm = ({
+    isLoggingIn,
     onLogin
 }: LoginFormProps) => {
     const [email, setEmail] = useState<string>("");
@@ -45,9 +47,11 @@ export const LoginForm = ({
                 </div>
 
                 <BlockButton 
-                    text={"Login"}
+                    text="Login"
                     className="font-lilita text-lg"
                     type="submit"
+                    isLoading={isLoggingIn}
+                    loadingText="Logging In..."
                 />
 
                 <p className="text-center">New to Fun2Learn?

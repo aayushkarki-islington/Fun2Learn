@@ -7,6 +7,8 @@ import { ChevronDown } from "lucide-react";
 import { UserRole, Gender } from "@/models/types";
 import Image from "next/image";
 import Dropdown from "./ui/dropdown";
+import { SignUpRequest } from "@/models/requestModels";
+import { toast } from "sonner";
 
 interface SignUpRoleDropdownProps {
     role: UserRole;
@@ -15,9 +17,14 @@ interface SignUpRoleDropdownProps {
 }
 
 interface SignUpFromProps {
-    onLogin: (email: string, password: string) => void;
+    isSigningUp: boolean;
+    onSignUp: (data: SignUpRequest) => void;
 }
 
+/** 
+ * Dynamic Dropdown that is used to select roles between tutor and learner.
+ * Dynamically renders a clipart image of the avatar based on role & gender.
+*/ 
 const SignUpRoleDropdown = ({ role, gender, onRoleChange }: SignUpRoleDropdownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -98,17 +105,36 @@ const SignUpRoleDropdown = ({ role, gender, onRoleChange }: SignUpRoleDropdownPr
 };
 
 export const SignUpForm = ({
-    onLogin
+    isSigningUp,
+    onSignUp
 }: SignUpFromProps) => {
     const [name, setName] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
     const [selectedRole, setSelectedRole] = useState<UserRole>("learner");
-    const [selectedGender, setSelectedGender] = useState<Gender>("female");
+    const [selectedGender, setSelectedGender] = useState<Gender>("male");
     const [birthdate, setBirthdate] = useState<string>("");
 
     const genders: Gender[] = ['male', 'female', 'other'];
+
+    const handleSubmit = () => {
+        // Validate password confirmation
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match");
+            return;
+        }
+
+        const signupData: SignUpRequest = {
+            fullName: name,
+            email: email,
+            password: password,
+            birthday: birthdate,
+            gender: selectedGender,
+            role: selectedRole
+        };
+        onSignUp(signupData);
+    }
 
     return (
         <div className="flex flex-col gap-8">
@@ -120,7 +146,7 @@ export const SignUpForm = ({
                     onRoleChange={setSelectedRole}
                 />
             </div>
-            <form onSubmit={(e) => {e.preventDefault(); onLogin(email, password)}} className="flex flex-col gap-4">
+            <form onSubmit={(e) => {e.preventDefault(); handleSubmit()}} className="flex flex-col gap-4">
                 <div className="flex flex-col">
                     <label className="mb-2">Name</label>
                     <input 
@@ -196,6 +222,8 @@ export const SignUpForm = ({
                     text={"Sign Up"}
                     className="font-lilita text-lg"
                     type="submit"
+                    isLoading={isSigningUp}
+                    loadingText="Signing Up..."
                 />
 
                 <Link href="/login">

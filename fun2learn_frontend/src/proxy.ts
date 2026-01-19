@@ -12,7 +12,11 @@ interface JWTPayload {
     iat?: number;
 }
 
-const NON_GATED_PATHS = [
+// Non gated paths. Add any paths that should be accessible no matter the state of authentication
+const NON_GATED_PATHS: string[] = []
+
+// Paths that only show when the user is not logged in. If logged in, redirect to different page
+const NO_AUTH_ONLY_PATHS = [
     "/login",
     "/signup"
 ]
@@ -42,6 +46,14 @@ export async function proxy(request: NextRequest) {
     const accessToken = request.cookies.get('accessToken');
 
     if(!accessToken) {
+        if(NO_AUTH_ONLY_PATHS.includes(pathname)){
+            return NextResponse.next();
+        }
+        
         return NextResponse.redirect(new URL("/login", request.nextUrl));
+    } else {
+        if(NO_AUTH_ONLY_PATHS.includes(pathname)){
+            return NextResponse.redirect(new URL("/home", request.nextUrl));
+        }
     }
 }
