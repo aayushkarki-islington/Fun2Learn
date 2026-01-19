@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Nunito, Lilita_One } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../context/theme-context";
 import { Toaster } from "sonner";
+import { getThemeCookie } from "./utils/themeUtils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,17 +32,19 @@ export const metadata: Metadata = {
   description: "A gamified learning platform.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const theme = await getThemeCookie();
+
   return (
-    <html lang="en">
+    <html lang="en" className={theme === "dark" ? "dark" : ""}>
       <body
         className={`${nunito.variable} ${lilita.variable} antialiased`}
       >
-        <ThemeProvider>
+        <ThemeProvider initialTheme={theme}>
           {children}
           <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>
