@@ -17,6 +17,7 @@ router = APIRouter(
     tags=[_SHOW_NAME],
     responses={404: {"description": "Not found"}},
 )
+
 logger = logging.getLogger(__name__)
 
 def calculate_age(birthday: date) -> int:
@@ -127,7 +128,7 @@ async def login(
 
         # Create access token
         access_token = create_access_token(
-            data={
+            payload={
                 "sub": user.user_id,
                 "email": user.email,
                 "role": user.role

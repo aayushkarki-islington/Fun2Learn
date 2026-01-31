@@ -5,4 +5,4 @@ pymongo
 sqlalchemy
 psycopg2-binary
 bcrypt
-pyjwt
+python-jose

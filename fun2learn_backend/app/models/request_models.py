@@ -13,3 +13,7 @@ class SignUpRequest(BaseModel):
 class SignInRequest(BaseModel):
     email: str
     password: str
+
+class CourseCreateRequest(BaseModel):
+    name: str
+    description: str
