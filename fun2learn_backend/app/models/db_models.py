@@ -45,7 +45,7 @@ class Chapter(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     unit_id = Column(String(40), ForeignKey("units.id", ondelete="CASCADE"), nullable=False)
     unit = relationship("Unit", back_populates="chapters")
-    lesson = relationship("Lesson", back_populates="chapter", cascade="all, delete-orphan")
+    lessons = relationship("Lesson", back_populates="chapter", cascade="all, delete-orphan")
 
 class Lesson(Base):
     __tablename__ = "lessons"
@@ -56,7 +56,7 @@ class Lesson(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     chapter_id = Column(String(40), ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False)
     chapter = relationship("Chapter", back_populates="lessons")
-    question = relationship("Question", back_populates="lesson", cascade="all, delete-orphan")
+    questions = relationship("Question", back_populates="lesson", cascade="all, delete-orphan")
 
 class Question(Base):
     __tablename__ = "lesson_questions"
@@ -74,13 +74,15 @@ class MCQOption(Base):
 
     id = Column(String(40), primary_key=True)
     option_text = Column(Text)
-    is_correct = Column(Boolean, server_default=False)
+    is_correct = Column(Boolean, server_default="false")
     question_id = Column(String(40), ForeignKey("lesson_questions.id"))
+    question = relationship("Question", back_populates="mcq_options")
 
 class TextAnswer(Base):
     __tablename__ = "lesson_text_answer"
     
     id = Column(String(40), primary_key=True)
     correct_answer = Column(Text, nullable=False)
-    casing_matters = Column(Boolean, server_default=False)
+    casing_matters = Column(Boolean, server_default="false")
     question_id = Column(String(40), ForeignKey("lesson_questions.id"))
+    question = relationship("Question", back_populates="text_answers")

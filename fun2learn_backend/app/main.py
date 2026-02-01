@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from app.utils.logging_utils import setup_logging
 import logging
+from app.utils.db_utils import ensure_create_all
 
 #Importing all the routes that handle APIs
 from app.routes import (
@@ -46,6 +47,10 @@ def get_application():
         }
     )
 
+    # Run this after creating a new table
+    # logger.info("Ensuring all the tables are created")
+    # ensure_create_all()
+
     # Add CORS middleware last so it executes first and adds headers to all responses
     origins = [
         'http://localhost:3000',
@@ -61,6 +66,8 @@ def get_application():
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    
 
 
     @_app.middleware('http')
