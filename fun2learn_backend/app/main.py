@@ -7,7 +7,8 @@ from app.utils.db_utils import ensure_create_all
 
 #Importing all the routes that handle APIs
 from app.routes import (
-    authentication_route
+    authentication_route,
+    tutor_route
 )
 
 NON_GATED_ROUTES = [
@@ -47,7 +48,7 @@ def get_application():
         }
     )
 
-    # Run this after creating a new table
+    # Run this after creating a new table in db_models.py
     # logger.info("Ensuring all the tables are created")
     # ensure_create_all()
 
@@ -66,9 +67,6 @@ def get_application():
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    
-
 
     @_app.middleware('http')
     async def auth_middleware(request: Request, call_next):
@@ -98,6 +96,7 @@ def get_application():
 
 
     _app.include_router(authentication_route.router, prefix="/api")
+    _app.include_router(tutor_route.router, prefix="/api")
     return _app
 
 app = get_application()

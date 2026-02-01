@@ -13,6 +13,17 @@ class SignInResponse(BaseModel):
     token_type: Optional[str] = "bearer"
     user: Optional[dict] = None
 
+class CourseCreationResponse(BaseModel):
+    status: str
+    message: str
+    course_id: str
+
+class AddUnitResponse(BaseModel):
+    status: str
+    message: str
+    unit_id: str
+    unit_index: str
+
 class ErrorResponse(BaseModel):
     status: str
     message: str

@@ -14,6 +14,8 @@ class User(Base):
     gender = Column(String(20), nullable=False)
     image_path = Column(String(255))
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    status = Column(String(20), server_default="active")
+    courses = relationship("Course", back_populates="user", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = "courses"
@@ -21,7 +23,10 @@ class Course(Base):
     id = Column(String(40), primary_key=True)
     name = Column(String(255), nullable = False)
     description = Column(Text, nullable=False)
+    created_by = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    status = Column(String(20), nullable=False)
+    user = relationship("User", back_populates="courses")
     units = relationship("Unit", back_populates="course", cascade="all, delete-orphan")
 
 class Unit(Base):

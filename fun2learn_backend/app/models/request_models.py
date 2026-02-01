@@ -17,3 +17,8 @@ class SignInRequest(BaseModel):
 class CourseCreateRequest(BaseModel):
     name: str
     description: str
+
+class AddUnitRequest(BaseModel):
+    name: str
+    description: str
+    course_id: str
