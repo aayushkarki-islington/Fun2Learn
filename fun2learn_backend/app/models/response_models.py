@@ -22,7 +22,29 @@ class AddUnitResponse(BaseModel):
     status: str
     message: str
     unit_id: str
-    unit_index: str
+    unit_index: int
+
+class AddChapterResponse(BaseModel):
+    status: str
+    message: str
+    chapter_id: str
+    chapter_index: int
+
+class AddLessonResponse(BaseModel):
+    status: str
+    message: str
+    lesson_id: str
+    lesson_index: int
+
+class AddMCQQuestionResponse(BaseModel):
+    status: str
+    message: str
+    question_id: str
+
+class AddTextQuestionResponse(BaseModel):
+    status: str
+    message: str
+    question_id: str
 
 class ErrorResponse(BaseModel):
     status: str

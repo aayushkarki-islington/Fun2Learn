@@ -1,6 +1,13 @@
 from fastapi import HTTPException, status
 
 class UnauthorizedUserException(HTTPException):
+    """
+    HTTPException raised when a resource is attempted to be altered from an unknown user account.
+
+    Args:
+        detail (str | None): Optional custom error message. If provided,
+            it overrides the default "You are forbidden from modifying this course's contents" message.
+    """
     def __init__(self, detail: str | None = None):
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
