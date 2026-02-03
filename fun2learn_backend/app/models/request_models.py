@@ -45,3 +45,47 @@ class AddTextQuestionRequest(BaseModel):
     lesson_id: str
     correct_answer: str
     casing_matters: bool = False
+
+class EditCourseRequest(BaseModel):
+    course_id: str
+    name: str
+    description: str
+
+class DeleteCourseRequest(BaseModel):
+    course_id: str
+
+class EditUnitRequest(BaseModel):
+    unit_id: str
+    name: str
+    description: str
+
+class DeleteUnitRequest(BaseModel):
+    unit_id: str
+
+class EditChapterRequest(BaseModel):
+    chapter_id: str
+    name: str
+
+class DeleteChapterRequest(BaseModel):
+    chapter_id: str
+
+class EditLessonRequest(BaseModel):
+    lesson_id: str
+    name: str
+
+class DeleteLessonRequest(BaseModel):
+    lesson_id: str
+
+class EditMCQQuestionRequest(BaseModel):
+    question_id: str
+    question_text: str
+    options: List[MCQOptionRequest]
+
+class DeleteQuestionRequest(BaseModel):
+    question_id: str
+
+class EditTextQuestionRequest(BaseModel):
+    question_id: str
+    question_text: str
+    correct_answer: str
+    casing_matters: bool = False

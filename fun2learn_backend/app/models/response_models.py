@@ -46,6 +46,56 @@ class AddTextQuestionResponse(BaseModel):
     message: str
     question_id: str
 
+class EditCourseResponse(BaseModel):
+    status: str
+    message: str
+    course_id: str
+
+class DeleteCourseResponse(BaseModel):
+    status: str
+    message: str
+
+class EditUnitResponse(BaseModel):
+    status: str
+    message: str
+    unit_id: str
+
+class DeleteUnitResponse(BaseModel):
+    status: str
+    message: str
+
+class EditChapterResponse(BaseModel):
+    status: str
+    message: str
+    chapter_id: str
+
+class DeleteChapterResponse(BaseModel):
+    status: str
+    message: str
+
+class EditLessonResponse(BaseModel):
+    status: str
+    message: str
+    lesson_id: str
+
+class DeleteLessonResponse(BaseModel):
+    status: str
+    message: str
+
+class EditMCQQuestionResponse(BaseModel):
+    status: str
+    message: str
+    question_id: str
+
+class EditTextQuestionResponse(BaseModel):
+    status: str
+    message: str
+    question_id: str
+
+class DeleteQuestionResponse(BaseModel):
+    status: str
+    message: str
+
 class ErrorResponse(BaseModel):
     status: str
     message: str
