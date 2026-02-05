@@ -11,3 +11,20 @@ export interface SignUpResponse {
     message: string;
     user_id?: string;
 }
+
+export interface GetCoursesResponse {
+    status: string;
+    message: string;
+    courses: import('./types').CourseSummary[];
+}
+
+export interface CourseCreationResponse {
+    status: string;
+    message: string;
+    course_id: string;
+}
+
+export interface DeleteCourseResponse {
+    status: string;
+    message: string;
+}

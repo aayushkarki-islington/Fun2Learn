@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import BlockButton from "./ui/blockButton";
+import Button from "./ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -46,13 +46,14 @@ export const LoginForm = ({
                     />
                 </div>
 
-                <BlockButton 
-                    text="Login"
+                <Button
                     className="font-lilita text-lg"
                     type="submit"
                     isLoading={isLoggingIn}
                     loadingText="Logging In..."
-                />
+                >
+                    Login
+                </Button>
 
                 <p className="text-center">New to Fun2Learn?
                     <Link href={"/signup"}><span className="cursor-pointer hover:text-(--primary) ml-1">Sign Up</span></Link>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTheme } from "@/context/theme-context";
-import { Logo } from "@/components/ui/logo";
+import Logo from "@/components/ui/logo";
 import { LoginForm } from "@/components/login-form";
 import { toast } from "sonner";
 import { isValidEmail } from "../utils/validationUtils";
@@ -41,7 +41,7 @@ const LoginPage = () => {
 
             if(loginResponse.success){
                 toast.success("Login successful", {id: toastId, duration: 3000});
-                router.push("/home");
+                router.replace("/home");
             }
             else {
                 const message = loginResponse.errorMessage;

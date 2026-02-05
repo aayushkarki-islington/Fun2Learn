@@ -15,9 +15,9 @@ type LogoConstraints = {width: number, height: number};
 const getSize = (size: LogoSize): LogoConstraints => {
     switch (size) {
         case 'sm':
-            return {width: 60, height: 60}
+            return {width: 80, height: 80}
         case 'md':
-            return {width: 100, height: 100}
+            return {width: 140, height: 140}
         case 'lg':
             return {width: 200, height: 200}
         case 'xl':
@@ -28,12 +28,12 @@ const getSize = (size: LogoSize): LogoConstraints => {
 }
 
 const getLogoFile = (showText: boolean, theme: Theme) => {
-    if(!showText) return "logo/logo-default.svg";
+    if(!showText) return "/logo/logo-default.svg";
 
-    return `logo/logo-text-${theme}.svg`;
+    return `/logo/logo-text-${theme}.svg`;
 }
 
-export const Logo = ({
+const Logo = ({
     size = "md",
     showText = false
 }: LogoProps) => {
@@ -49,3 +49,5 @@ export const Logo = ({
         />
     )
 }
+
+export default Logo;

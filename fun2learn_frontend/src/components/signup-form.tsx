@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import BlockButton from "./ui/blockButton";
+import Button from "./ui/button";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { UserRole, Gender } from "@/models/types";
@@ -218,13 +218,14 @@ export const SignUpForm = ({
                     />
                 </div>
 
-                <BlockButton 
-                    text={"Sign Up"}
-                    className="font-lilita text-lg"
+                <Button
+                    className="font-lilita text-lg w-full"
                     type="submit"
                     isLoading={isSigningUp}
                     loadingText="Signing Up..."
-                />
+                >
+                    Sign Up
+                </Button>
 
                 <Link href="/login">
                     <p className="cursor-pointer hover:text-(--primary) text-center">Log In Instead</p>
