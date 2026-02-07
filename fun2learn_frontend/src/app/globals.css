@@ -62,3 +62,28 @@ body {
 .bg-gradient {
   background: var(--gradient-default);
 }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.chapter-card {
+  transition: all 0.3s ease;
+}
+
+.chapter-card:hover {
+  transform: translateY(-4px);
+}
+
+.lesson-circle {
+  transition: all 0.3s ease;
+}
+
+.lesson-circle:hover {
+  transform: scale(1.15);
+}

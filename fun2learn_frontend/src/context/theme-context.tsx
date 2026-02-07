@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useState, ReactNode, useEffect, useContext, useMemo } from "react";
+import { createContext, useState, ReactNode, useContext, useMemo } from "react";
 import { Theme } from "../models/types";
 import { setThemeCookie } from "@/app/utils/themeUtils";
 

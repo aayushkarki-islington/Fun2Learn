@@ -9,6 +9,7 @@ import { isValidEmail } from "../utils/validationUtils";
 import { login } from "@/api/authApi";
 import { LoginRequest } from "@/models/requestModels";
 import { useRouter } from "next/navigation";
+import Button from "@/components/ui/button";
 
 const LoginPage = () => {
     const {theme, toggleTheme} = useTheme();
@@ -59,7 +60,7 @@ const LoginPage = () => {
 
     return (
         <div className="bg-primary w-full min-h-screen flex items-center justify-center">
-            <button className="fixed top-20 right-20 hover:text-(--primary)" onClick={toggleTheme}>Toggle theme</button>
+            <Button variant="ghost" className="fixed top-20 right-20 hover:text-(--primary)" onClick={toggleTheme}>Toggle theme</Button>
             <div className="flex flex-col gap-8">
                 <Logo size="xl" showText={true} />
                 <LoginForm

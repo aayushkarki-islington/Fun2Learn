@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { isValidEmail, isValidPassword } from "../utils/validationUtils";
 import { signup } from "@/api/authApi";
 import { useRouter } from "next/navigation";
+import Button from "@/components/ui/button";
 
 const SignUpPage = () => {
     const {theme, toggleTheme} = useTheme();
@@ -58,7 +59,7 @@ const SignUpPage = () => {
 
     return (
         <div className="bg-primary w-full min-h-screen flex items-center justify-center py-4">
-            <button className="fixed top-20 right-20 hover:text-(--primary)" onClick={toggleTheme}>Toggle theme</button>
+            <Button variant="ghost" className="fixed top-20 right-20 hover:text-(--primary)" onClick={toggleTheme}>Toggle theme</Button>
             <div className="flex flex-col gap-8">
                 {/* <Logo size="xl" showText={true} /> */}
                 <SignUpForm

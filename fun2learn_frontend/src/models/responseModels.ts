@@ -1,3 +1,5 @@
+import type { CourseSummary, CourseDetail, LessonAttachment } from './types';
+
 export interface LoginResponse {
     status: string;
     message: string;
@@ -15,7 +17,7 @@ export interface SignUpResponse {
 export interface GetCoursesResponse {
     status: string;
     message: string;
-    courses: import('./types').CourseSummary[];
+    courses: CourseSummary[];
 }
 
 export interface CourseCreationResponse {
@@ -25,6 +27,75 @@ export interface CourseCreationResponse {
 }
 
 export interface DeleteCourseResponse {
+    status: string;
+    message: string;
+}
+
+export interface GetCourseDetailResponse {
+    status: string;
+    message: string;
+    course: CourseDetail;
+}
+
+export interface AddUnitResponse {
+    status: string;
+    message: string;
+    unit_id: string;
+    unit_index: number;
+}
+
+export interface AddChapterResponse {
+    status: string;
+    message: string;
+    chapter_id: string;
+    chapter_index: number;
+}
+
+export interface AddLessonResponse {
+    status: string;
+    message: string;
+    lesson_id: string;
+    lesson_index: number;
+}
+
+export interface AddMCQQuestionResponse {
+    status: string;
+    message: string;
+    question_id: string;
+}
+
+export interface AddTextQuestionResponse {
+    status: string;
+    message: string;
+    question_id: string;
+}
+
+export interface GenericResponse {
+    status: string;
+    message: string;
+}
+
+export interface PublishCourseResponse {
+    status: string;
+    message: string;
+    course_id: string;
+}
+
+export interface UploadLessonAttachmentResponse {
+    status: string;
+    message: string;
+    attachment_id: string;
+    file_name: string;
+    s3_url: string;
+}
+
+export interface GetLessonAttachmentsResponse {
+    status: string;
+    message: string;
+    attachments: LessonAttachment[];
+}
+
+export interface DeleteLessonAttachmentResponse {
     status: string;
     message: string;
 }

@@ -3,6 +3,7 @@ import { getHeaders } from "./apiUtils";
 import { LoginRequest, SignUpRequest } from "@/models/requestModels";
 import { LoginResponse, SignUpResponse } from "@/models/responseModels";
 import Cookies from "js-cookie";
+import { User } from "@/models/types";
 
 const API_URL = config.API_URL;
 
@@ -120,3 +121,26 @@ export const signup = async (payload: SignUpRequest) => {
         };
     }
 };
+
+export const getUserData = async () => {
+    try {
+        const url = `${API_URL}/users/me`;
+
+        const response = await fetch(url, {
+            method: "GET", 
+            headers: getHeaders()
+        })
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to create course");
+        }
+
+        const user_data = await response.json() as User;
+        return user_data;
+    }
+    catch (e) {
+        console.error("Failed to get user data");
+        return null;
+    }
+}

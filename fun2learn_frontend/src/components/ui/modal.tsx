@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import Button from "@/components/ui/button";
 
 interface ModalProps {
     isOpen: boolean;
@@ -51,12 +52,13 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
                 {/* Header */}
                 <div className="bg-gradient text-white px-6 py-4 flex justify-between items-center">
                     <h2 className="font-lilita text-2xl">{title}</h2>
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                        className="w-8 h-8 p-0 shadow-none hover:bg-white/20 text-white"
                     >
                         <X size={20} />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Content */}
