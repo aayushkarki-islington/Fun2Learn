@@ -28,6 +28,7 @@ class Course(Base):
     status = Column(String(20), nullable=False)
     user = relationship("User", back_populates="courses")
     units = relationship("Unit", back_populates="course", cascade="all, delete-orphan")
+    course_tags = relationship("CourseTag", back_populates="course", cascade="all, delete-orphan")
 
 class Unit(Base):
     __tablename__ = "units"
@@ -62,6 +63,16 @@ class Lesson(Base):
     chapter_id = Column(String(40), ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False)
     chapter = relationship("Chapter", back_populates="lessons")
     questions = relationship("Question", back_populates="lesson", cascade="all, delete-orphan")
+    lesson_attachments = relationship("LessonAttachment", back_populates="lesson", cascade="all, delete-orphan")
+
+class LessonAttachment(Base):
+    __tablename__ = "lesson_attachments"
+    id = Column(String(40), primary_key=True)
+    file_name = Column(Text, nullable=False)
+    s3_url = Column(String(100))
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    lesson_id = Column(String(40), ForeignKey("lessons.id", ondelete="CASCADE"))
+    lesson = relationship("Lesson", back_populates="lesson_attachments")
 
 class Question(Base):
     __tablename__ = "lesson_questions"
@@ -69,6 +80,7 @@ class Question(Base):
     id = Column(String(40), primary_key=True)
     question_text = Column(Text, nullable=False)
     question_type = Column(String(100), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     lesson_id = Column(String(40), ForeignKey("lessons.id"), nullable=False)
     lesson = relationship("Lesson", back_populates="questions")
     mcq_options = relationship("MCQOption", back_populates="question", cascade="all, delete-orphan")
@@ -91,3 +103,32 @@ class TextAnswer(Base):
     casing_matters = Column(Boolean, server_default="false")
     question_id = Column(String(40), ForeignKey("lesson_questions.id"))
     question = relationship("Question", back_populates="text_answers")
+
+class Badge(Base):
+    __tablename__ = "badge"
+
+    id = Column(String(40), primary_key=True)
+    name = Column(String(100), nullable=False)
+    # badgetype can be 'icon' | 'image' differentiating whether user uses one of available (Lucide) icons, or custom images for badge
+    badge_type = Column(String(20), nullable=False)
+    icon_name = Column(String(100))
+    image_url = Column(String(100))
+    course_id = Column(String(20), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+
+class Tag(Base):
+    __tablename__ = "tags"
+    id = Column(String(40), primary_key=True)
+    name = Column(String(100), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    course_tags = relationship("CourseTag", back_populates="tag", cascade="all, delete-orphan")
+
+class CourseTag(Base):
+    __tablename__ = "course_tags"
+    id = Column(String(40), primary_key=True)
+    course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    tag_id = Column(String(40), ForeignKey("tags.id", ondelete="CASCADE"), nullable=False)
+    course = relationship("Course", back_populates="course_tags")
+    tag = relationship("Tag", back_populates="course_tags")
+
+

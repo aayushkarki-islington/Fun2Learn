@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from app.utils.db_utils import get_db
 from app.auth.dependencies import require_role
 from sqlalchemy.orm import Session
@@ -10,7 +10,8 @@ from app.models.request_models import (
     EditUnitRequest, DeleteUnitRequest,
     EditChapterRequest, DeleteChapterRequest,
     EditLessonRequest, DeleteLessonRequest,
-    EditMCQQuestionRequest, EditTextQuestionRequest, DeleteQuestionRequest
+    EditMCQQuestionRequest, EditTextQuestionRequest, DeleteQuestionRequest,
+    PublishCourseRequest, DeleteLessonAttachmentRequest
 )
 from app.models.response_models import (
     CourseCreationResponse, AddUnitResponse, AddChapterResponse, AddLessonResponse,
@@ -19,13 +20,19 @@ from app.models.response_models import (
     EditUnitResponse, DeleteUnitResponse,
     EditChapterResponse, DeleteChapterResponse,
     EditLessonResponse, DeleteLessonResponse,
-    EditMCQQuestionResponse, EditTextQuestionResponse, DeleteQuestionResponse
+    EditMCQQuestionResponse, EditTextQuestionResponse, DeleteQuestionResponse,
+    PublishCourseResponse, GetCoursesResponse, GetCourseDetailResponse,
+    CourseSummary, CourseDetail, UnitDetail, ChapterDetail, LessonDetail,
+    UploadLessonAttachmentResponse, GetLessonAttachmentsResponse, DeleteLessonAttachmentResponse,
+    LessonAttachmentDetail, GetLessonQuestionsResponse, QuestionDetail, MCQOptionDetail, TextAnswerDetail
 )
 import logging
 from sqlalchemy import select, func, desc
-from app.models.db_models import Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer
+from app.models.db_models import Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer, LessonAttachment
 from app.utils.exceptions import UnauthorizedUserException, NotFoundException, ExistingResourceException
+from app.utils.boto3_utils import upload_file_to_s3, delete_file_from_s3
 import uuid
+import os
 
 _SHOW_NAME = "course"
 router = APIRouter(
@@ -36,14 +43,14 @@ router = APIRouter(
 
 logger = logging.getLogger(__name__)
 
-@router.post("/create_lesson")
+@router.post("/create_course")
 async def create_course(
     request: CourseCreateRequest,
     current_user: TokenUser = Depends(require_role("tutor", "admin")),
     db: Session = Depends(get_db)
-):  
+):
     """
-    Create a new lesson from a tutor account.
+    Create a new course from a tutor account.
     """
     try:
         user_id = current_user.user_id
@@ -79,7 +86,140 @@ async def create_course(
     except Exception as e:
         logger.exception(f"An error occurred while creating course: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
-        
+
+@router.get("/courses")
+async def get_courses(
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all courses for the logged-in tutor with summary statistics.
+    """
+    try:
+        user_id = current_user.user_id
+
+        # Query to get all courses for the user
+        courses_stmt = select(Course).where(Course.created_by == user_id).order_by(Course.created_at.desc())
+        courses = db.execute(courses_stmt).scalars().all()
+
+        course_summaries = []
+        for course in courses:
+            # Count units
+            unit_count = len(course.units)
+
+            # Count chapters
+            chapter_count = sum(len(unit.chapters) for unit in course.units)
+
+            # Count lessons
+            lesson_count = sum(
+                len(chapter.lessons)
+                for unit in course.units
+                for chapter in unit.chapters
+            )
+
+            # Count questions
+            question_count = sum(
+                len(lesson.questions)
+                for unit in course.units
+                for chapter in unit.chapters
+                for lesson in chapter.lessons
+            )
+
+            course_summaries.append(CourseSummary(
+                id=course.id,
+                name=course.name,
+                description=course.description,
+                status=course.status,
+                created_at=course.created_at,
+                unit_count=unit_count,
+                chapter_count=chapter_count,
+                lesson_count=lesson_count,
+                question_count=question_count
+            ))
+
+        return GetCoursesResponse(
+            status="success",
+            message="Courses retrieved successfully",
+            courses=course_summaries
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while retrieving courses: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+@router.get("/course/{course_id}")
+async def get_course_detail(
+    course_id: str,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed information about a specific course including all units, chapters, and lessons.
+    """
+    try:
+        # Query to get course with all nested data
+        course_stmt = select(Course).where(Course.id == course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        # Raise exceptions if course not found or not owned by current user
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Build nested structure
+        units = []
+        for unit in sorted(course.units, key=lambda u: u.unit_index):
+            chapters = []
+            for chapter in sorted(unit.chapters, key=lambda c: c.chapter_index):
+                lessons = []
+                for lesson in sorted(chapter.lessons, key=lambda l: l.lesson_index):
+                    lessons.append(LessonDetail(
+                        id=lesson.id,
+                        name=lesson.name,
+                        lesson_index=lesson.lesson_index,
+                        created_at=lesson.created_at,
+                        question_count=len(lesson.questions)
+                    ))
+
+                chapters.append(ChapterDetail(
+                    id=chapter.id,
+                    name=chapter.name,
+                    chapter_index=chapter.chapter_index,
+                    created_at=chapter.created_at,
+                    lessons=lessons
+                ))
+
+            units.append(UnitDetail(
+                id=unit.id,
+                name=unit.name,
+                description=unit.description,
+                unit_index=unit.unit_index,
+                created_at=unit.created_at,
+                chapters=chapters
+            ))
+
+        course_detail = CourseDetail(
+            id=course.id,
+            name=course.name,
+            description=course.description,
+            status=course.status,
+            created_at=course.created_at,
+            units=units
+        )
+
+        return GetCourseDetailResponse(
+            status="success",
+            message="Course details retrieved successfully",
+            course=course_detail
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while retrieving course details: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
 @router.post("/add_unit")
 async def add_unit(
     request: AddUnitRequest,
@@ -480,6 +620,104 @@ async def delete_course(
         raise
     except Exception as e:
         logger.exception(f"An error occurred while deleting course: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+@router.post("/publish_course")
+async def publish_course(
+    request: PublishCourseRequest,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Publish a course, making it available to students.
+    Course must have at least one unit with content to be published.
+    """
+    try:
+        course_id = request.course_id
+
+        # Query to get existing course with units
+        course_stmt = select(Course).where(Course.id == course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        # Raise exceptions if course not found or not owned by current user
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Check if course is already published
+        if course.status == "published":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Course is already published"
+            )
+
+        # Validate course has at least one unit
+        unit_count_stmt = select(func.count()).select_from(Unit).where(Unit.course_id == course_id)
+        unit_count = db.execute(unit_count_stmt).scalar_one()
+
+        if unit_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Course must have at least one unit before publishing"
+            )
+
+        # Validate that at least one unit has chapters
+        chapter_count_stmt = select(func.count()).select_from(Chapter).join(
+            Unit, Chapter.unit_id == Unit.id
+        ).where(Unit.course_id == course_id)
+        chapter_count = db.execute(chapter_count_stmt).scalar_one()
+
+        if chapter_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Course must have at least one chapter before publishing"
+            )
+
+        # Validate that at least one chapter has lessons
+        lesson_count_stmt = select(func.count()).select_from(Lesson).join(
+            Chapter, Lesson.chapter_id == Chapter.id
+        ).join(
+            Unit, Chapter.unit_id == Unit.id
+        ).where(Unit.course_id == course_id)
+        lesson_count = db.execute(lesson_count_stmt).scalar_one()
+
+        if lesson_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Course must have at least one lesson before publishing"
+            )
+
+        # Validate that at least one lesson has questions
+        question_count_stmt = select(func.count()).select_from(Question).join(
+            Lesson, Question.lesson_id == Lesson.id
+        ).join(
+            Chapter, Lesson.chapter_id == Chapter.id
+        ).join(
+            Unit, Chapter.unit_id == Unit.id
+        ).where(Unit.course_id == course_id)
+        question_count = db.execute(question_count_stmt).scalar_one()
+
+        if question_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Course must have at least one question before publishing"
+            )
+
+        # Update course status to published
+        course.status = "published"
+        db.commit()
+        db.refresh(course)
+
+        return PublishCourseResponse(
+            status="success",
+            message="Course published successfully",
+            course_id=course_id
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while publishing course: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
 
 @router.put("/edit_unit")
@@ -893,4 +1131,234 @@ async def delete_question(
         raise
     except Exception as e:
         logger.exception(f"An error occurred while deleting question: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+@router.get("/lesson/{lesson_id}/questions")
+async def get_lesson_questions(
+    lesson_id: str,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all questions for a specific lesson with their options/answers.
+    """
+    try:
+        # Query to get lesson details
+        lesson_stmt = select(Lesson).where(Lesson.id == lesson_id)
+        lesson = db.execute(lesson_stmt).scalar_one_or_none()
+
+        if lesson is None:
+            raise NotFoundException("Lesson")
+        if lesson.chapter.unit.course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Build question details
+        question_details = []
+        for question in lesson.questions:
+            q_detail = QuestionDetail(
+                id=question.id,
+                question_text=question.question_text,
+                question_type=question.question_type,
+            )
+
+            if question.question_type == "mcq":
+                q_detail.mcq_options = [
+                    MCQOptionDetail(
+                        id=opt.id,
+                        option_text=opt.option_text,
+                        is_correct=opt.is_correct
+                    )
+                    for opt in question.mcq_options
+                ]
+            elif question.question_type == "text" and len(question.text_answers) > 0:
+                answer = question.text_answers[0]
+                q_detail.text_answer = TextAnswerDetail(
+                    id=answer.id,
+                    correct_answer=answer.correct_answer,
+                    casing_matters=answer.casing_matters
+                )
+
+            question_details.append(q_detail)
+
+        return GetLessonQuestionsResponse(
+            status="success",
+            message="Questions retrieved successfully",
+            questions=question_details
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while retrieving lesson questions: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+@router.post("/upload_lesson_attachment")
+async def upload_lesson_attachment(
+    lesson_id: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload an attachment file for a lesson. Maximum 2 attachments per lesson.
+    Supported file types: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, JPEG, PNG, GIF, SVG, MP4, MP3, WAV, AVI, MOV, ZIP, TXT, CSV
+    Maximum file size: 50MB
+    """
+    try:
+        # Query to get lesson details
+        lesson_stmt = select(Lesson).where(Lesson.id == lesson_id)
+        lesson = db.execute(lesson_stmt).scalar_one_or_none()
+
+        # Raise exceptions if lesson not found or not owned by current user
+        if lesson is None:
+            raise NotFoundException("Lesson")
+        if lesson.chapter.unit.course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Check current attachment count for this lesson
+        attachment_count_stmt = select(func.count()).select_from(LessonAttachment).where(
+            LessonAttachment.lesson_id == lesson_id
+        )
+        attachment_count = db.execute(attachment_count_stmt).scalar_one()
+
+        if attachment_count >= 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Maximum 2 attachments allowed per lesson. Please delete an existing attachment first."
+            )
+
+        # Get S3 bucket name from environment
+        s3_bucket = os.getenv('AWS_S3_BUCKET_NAME', 'fun2learn-attachments')
+
+        # Upload file to S3
+        s3_url, s3_key = upload_file_to_s3(
+            file=file,
+            bucket_name=s3_bucket,
+            folder=f"lessons/{lesson_id}"
+        )
+
+        # Create attachment record in database
+        attachment_id = str(uuid.uuid4())
+        new_attachment = LessonAttachment(
+            id=attachment_id,
+            file_name=file.filename,
+            s3_url=s3_url,
+            lesson_id=lesson_id
+        )
+
+        db.add(new_attachment)
+        db.commit()
+        db.refresh(new_attachment)
+
+        return UploadLessonAttachmentResponse(
+            status="success",
+            message="Attachment uploaded successfully",
+            attachment_id=attachment_id,
+            file_name=file.filename,
+            s3_url=s3_url
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while uploading lesson attachment: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+@router.get("/lesson/{lesson_id}/attachments")
+async def get_lesson_attachments(
+    lesson_id: str,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all attachments for a specific lesson.
+    """
+    try:
+        # Query to get lesson details
+        lesson_stmt = select(Lesson).where(Lesson.id == lesson_id)
+        lesson = db.execute(lesson_stmt).scalar_one_or_none()
+
+        # Raise exceptions if lesson not found or not owned by current user
+        if lesson is None:
+            raise NotFoundException("Lesson")
+        if lesson.chapter.unit.course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Query to get all attachments for the lesson
+        attachments_stmt = select(LessonAttachment).where(LessonAttachment.lesson_id == lesson_id).order_by(LessonAttachment.created_at)
+        attachments = db.execute(attachments_stmt).scalars().all()
+
+        attachment_details = [
+            LessonAttachmentDetail(
+                id=attachment.id,
+                file_name=attachment.file_name,
+                s3_url=attachment.s3_url,
+                created_at=attachment.created_at
+            )
+            for attachment in attachments
+        ]
+
+        return GetLessonAttachmentsResponse(
+            status="success",
+            message="Attachments retrieved successfully",
+            attachments=attachment_details
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while retrieving lesson attachments: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+@router.delete("/delete_lesson_attachment")
+async def delete_lesson_attachment(
+    request: DeleteLessonAttachmentRequest,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a lesson attachment. This will remove the file from S3 and the database record.
+    """
+    try:
+        attachment_id = request.attachment_id
+
+        # Query to get the attachment
+        attachment_stmt = select(LessonAttachment).where(LessonAttachment.id == attachment_id)
+        attachment = db.execute(attachment_stmt).scalar_one_or_none()
+
+        # Raise exceptions if attachment not found or not owned by current user
+        if attachment is None:
+            raise NotFoundException("Attachment")
+        if attachment.lesson.chapter.unit.course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Extract S3 key from URL
+        # URL format: https://{bucket}.s3.amazonaws.com/{key}
+        s3_url = attachment.s3_url
+        s3_bucket = os.getenv('AWS_S3_BUCKET_NAME', 'fun2learn-attachments')
+
+        # Extract the key from the S3 URL
+        if s3_url:
+            # Parse the S3 key from the URL
+            s3_key = s3_url.split('.amazonaws.com/')[-1]
+
+            # Delete file from S3
+            try:
+                delete_file_from_s3(s3_key=s3_key, bucket_name=s3_bucket)
+            except Exception as s3_error:
+                logger.warning(f"Failed to delete file from S3: {str(s3_error)}")
+                # Continue with database deletion even if S3 deletion fails
+
+        # Delete attachment record from database
+        db.delete(attachment)
+        db.commit()
+
+        return DeleteLessonAttachmentResponse(
+            status="success",
+            message="Attachment deleted successfully"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while deleting lesson attachment: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")

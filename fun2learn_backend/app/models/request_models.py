@@ -89,3 +89,9 @@ class EditTextQuestionRequest(BaseModel):
     question_text: str
     correct_answer: str
     casing_matters: bool = False
+
+class PublishCourseRequest(BaseModel):
+    course_id: str
+
+class DeleteLessonAttachmentRequest(BaseModel):
+    attachment_id: str

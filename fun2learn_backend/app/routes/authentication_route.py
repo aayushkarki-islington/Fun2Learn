@@ -78,7 +78,8 @@ async def signup(
             message="User registered successfully",
             user_id=user_id
         )
-
+    except HTTPException:
+        raise
     except IntegrityError as e:
         db.rollback()
         logger.error(f"Database integrity error during signup: {str(e)}")

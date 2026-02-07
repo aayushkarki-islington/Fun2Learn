@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
 
 class SignUpResponse(BaseModel):
     status: str
@@ -96,7 +97,107 @@ class DeleteQuestionResponse(BaseModel):
     status: str
     message: str
 
+class PublishCourseResponse(BaseModel):
+    status: str
+    message: str
+    course_id: str
+
+class MCQOptionDetail(BaseModel):
+    id: str
+    option_text: str
+    is_correct: bool
+
+class TextAnswerDetail(BaseModel):
+    id: str
+    correct_answer: str
+    casing_matters: bool
+
+class QuestionDetail(BaseModel):
+    id: str
+    question_text: str
+    question_type: str
+    mcq_options: Optional[List[MCQOptionDetail]] = None
+    text_answer: Optional[TextAnswerDetail] = None
+
+class LessonDetail(BaseModel):
+    id: str
+    name: str
+    lesson_index: int
+    created_at: datetime
+    question_count: int
+
+class ChapterDetail(BaseModel):
+    id: str
+    name: str
+    chapter_index: int
+    created_at: datetime
+    lessons: List[LessonDetail]
+
+class UnitDetail(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    unit_index: int
+    created_at: datetime
+    chapters: List[ChapterDetail]
+
+class CourseDetail(BaseModel):
+    id: str
+    name: str
+    description: str
+    status: str
+    created_at: datetime
+    units: List[UnitDetail]
+
+class CourseSummary(BaseModel):
+    id: str
+    name: str
+    description: str
+    status: str
+    created_at: datetime
+    unit_count: int
+    chapter_count: int
+    lesson_count: int
+    question_count: int
+
+class GetCoursesResponse(BaseModel):
+    status: str
+    message: str
+    courses: List[CourseSummary]
+
+class GetCourseDetailResponse(BaseModel):
+    status: str
+    message: str
+    course: CourseDetail
+
 class ErrorResponse(BaseModel):
     status: str
     message: str
     detail: Optional[str] = None
+
+class LessonAttachmentDetail(BaseModel):
+    id: str
+    file_name: str
+    s3_url: str
+    created_at: datetime
+
+class UploadLessonAttachmentResponse(BaseModel):
+    status: str
+    message: str
+    attachment_id: str
+    file_name: str
+    s3_url: str
+
+class GetLessonAttachmentsResponse(BaseModel):
+    status: str
+    message: str
+    attachments: List[LessonAttachmentDetail]
+
+class DeleteLessonAttachmentResponse(BaseModel):
+    status: str
+    message: str
+
+class GetLessonQuestionsResponse(BaseModel):
+    status: str
+    message: str
+    questions: List[QuestionDetail]

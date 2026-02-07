@@ -6,3 +6,5 @@ sqlalchemy
 psycopg2-binary
 bcrypt
 python-jose
+boto3
+python-multipart
