@@ -124,7 +124,7 @@ export const signup = async (payload: SignUpRequest) => {
 
 export const getUserData = async () => {
     try {
-        const url = `${API_URL}/users/me`;
+        const url = `${API_URL}/user/me`;
 
         const response = await fetch(url, {
             method: "GET", 

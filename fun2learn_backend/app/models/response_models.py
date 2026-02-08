@@ -170,6 +170,15 @@ class GetCourseDetailResponse(BaseModel):
     message: str
     course: CourseDetail
 
+class UserResponse(BaseModel):
+    user_id: str
+    full_name: str
+    email: str
+    birthdate: Optional[str] = None
+    role: str
+    gender: str
+    image_path: Optional[str] = None
+
 class ErrorResponse(BaseModel):
     status: str
     message: str

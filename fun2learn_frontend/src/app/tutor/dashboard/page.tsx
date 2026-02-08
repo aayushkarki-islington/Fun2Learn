@@ -12,13 +12,19 @@ import Modal from "@/components/ui/modal";
 import CreateCourseForm from "@/components/createCourseForm";
 import Button from "@/components/ui/button";
 import { BookOpen, Plus } from "lucide-react";
+import { useUser } from "@/context/user-context";
 
 const TutorDashboard = () => {
     const router = useRouter();
+    const { user } = useUser();
     const [courses, setCourses] = useState<CourseSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+
+    const getInitials = (name: string) => {
+        return name.split(" ").map(part => part[0]).join("").toUpperCase().slice(0, 2);
+    };
 
     // Load courses on mount
     useEffect(() => {
@@ -85,7 +91,11 @@ const TutorDashboard = () => {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
-            <DashboardHeader userName="Tutor" userInitials="T" />
+            <DashboardHeader
+                userName={user?.full_name ?? "Tutor"}
+                userInitials={user ? getInitials(user.full_name) : "T"}
+                imageUrl={user?.image_path}
+            />
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-6 py-8">

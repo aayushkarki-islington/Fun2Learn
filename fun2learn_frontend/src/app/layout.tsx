@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Nunito, Lilita_One } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../context/theme-context";
+import { UserProvider } from "../context/user-context";
 import { Toaster } from "sonner";
 import { getThemeCookie } from "./utils/themeUtils";
 
@@ -45,7 +46,9 @@ export default async function RootLayout({
         className={`${nunito.variable} ${lilita.variable} antialiased`}
       >
         <ThemeProvider initialTheme={theme}>
-          {children}
+          <UserProvider>
+            {children}
+          </UserProvider>
           <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>
       </body>
