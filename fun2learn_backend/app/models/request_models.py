@@ -95,3 +95,15 @@ class PublishCourseRequest(BaseModel):
 
 class DeleteLessonAttachmentRequest(BaseModel):
     attachment_id: str
+
+class SaveCourseTagsRequest(BaseModel):
+    course_id: str
+    tag_ids: List[str]
+
+class CreateBadgeIconRequest(BaseModel):
+    course_id: str
+    name: str
+    icon_name: str
+
+class DeleteBadgeRequest(BaseModel):
+    badge_id: str

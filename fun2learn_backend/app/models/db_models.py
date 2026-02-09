@@ -29,6 +29,7 @@ class Course(Base):
     user = relationship("User", back_populates="courses")
     units = relationship("Unit", back_populates="course", cascade="all, delete-orphan")
     course_tags = relationship("CourseTag", back_populates="course", cascade="all, delete-orphan")
+    badge = relationship("Badge", back_populates="course", uselist=False, cascade="all, delete-orphan")
 
 class Unit(Base):
     __tablename__ = "units"
@@ -113,8 +114,9 @@ class Badge(Base):
     badge_type = Column(String(20), nullable=False)
     icon_name = Column(String(100))
     image_url = Column(String(100))
-    course_id = Column(String(20), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    course = relationship("Course", back_populates="badge")
 
 class Tag(Base):
     __tablename__ = "tags"

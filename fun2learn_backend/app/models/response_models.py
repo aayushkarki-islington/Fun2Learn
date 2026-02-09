@@ -210,3 +210,41 @@ class GetLessonQuestionsResponse(BaseModel):
     status: str
     message: str
     questions: List[QuestionDetail]
+
+class TagDetail(BaseModel):
+    id: str
+    name: str
+
+class GetTagsResponse(BaseModel):
+    status: str
+    message: str
+    tags: List[TagDetail]
+
+class SaveCourseTagsResponse(BaseModel):
+    status: str
+    message: str
+    course_id: str
+    tag_count: int
+
+class GetCourseTagsResponse(BaseModel):
+    status: str
+    message: str
+    tags: List[TagDetail]
+
+class BadgeDetail(BaseModel):
+    id: str
+    name: str
+    badge_type: str
+    icon_name: Optional[str] = None
+    image_url: Optional[str] = None
+    course_id: str
+
+class CreateBadgeResponse(BaseModel):
+    status: str
+    message: str
+    badge: BadgeDetail
+
+class GetCourseBadgeResponse(BaseModel):
+    status: str
+    message: str
+    badge: Optional[BadgeDetail] = None

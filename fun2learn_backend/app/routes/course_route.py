@@ -11,7 +11,8 @@ from app.models.request_models import (
     EditChapterRequest, DeleteChapterRequest,
     EditLessonRequest, DeleteLessonRequest,
     EditMCQQuestionRequest, EditTextQuestionRequest, DeleteQuestionRequest,
-    PublishCourseRequest, DeleteLessonAttachmentRequest
+    PublishCourseRequest, DeleteLessonAttachmentRequest,
+    SaveCourseTagsRequest, CreateBadgeIconRequest
 )
 from app.models.response_models import (
     CourseCreationResponse, AddUnitResponse, AddChapterResponse, AddLessonResponse,
@@ -24,11 +25,13 @@ from app.models.response_models import (
     PublishCourseResponse, GetCoursesResponse, GetCourseDetailResponse,
     CourseSummary, CourseDetail, UnitDetail, ChapterDetail, LessonDetail,
     UploadLessonAttachmentResponse, GetLessonAttachmentsResponse, DeleteLessonAttachmentResponse,
-    LessonAttachmentDetail, GetLessonQuestionsResponse, QuestionDetail, MCQOptionDetail, TextAnswerDetail
+    LessonAttachmentDetail, GetLessonQuestionsResponse, QuestionDetail, MCQOptionDetail, TextAnswerDetail,
+    GetTagsResponse, TagDetail, SaveCourseTagsResponse, GetCourseTagsResponse,
+    CreateBadgeResponse, BadgeDetail, GetCourseBadgeResponse
 )
 import logging
 from sqlalchemy import select, func, desc
-from app.models.db_models import Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer, LessonAttachment
+from app.models.db_models import Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer, LessonAttachment, Tag, CourseTag, Badge
 from app.utils.exceptions import UnauthorizedUserException, NotFoundException, ExistingResourceException
 from app.utils.boto3_utils import upload_file_to_s3, delete_file_from_s3
 import uuid
@@ -1362,3 +1365,301 @@ async def delete_lesson_attachment(
     except Exception as e:
         logger.exception(f"An error occurred while deleting lesson attachment: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+# ─── Tags & Badge Endpoints ──────────────────────────────
+
+@router.get("/tags")
+async def get_tags(
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all available tags.
+    """
+    try:
+        tags_stmt = select(Tag).order_by(Tag.name)
+        tags = db.execute(tags_stmt).scalars().all()
+
+        tag_details = [TagDetail(id=tag.id, name=tag.name) for tag in tags]
+
+        return GetTagsResponse(
+            status="success",
+            message="Tags retrieved successfully",
+            tags=tag_details
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while retrieving tags: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+@router.get("/course/{course_id}/tags")
+async def get_course_tags(
+    course_id: str,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get tags assigned to a specific course.
+    """
+    try:
+        course_stmt = select(Course).where(Course.id == course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        tag_details = [
+            TagDetail(id=ct.tag.id, name=ct.tag.name)
+            for ct in course.course_tags
+        ]
+
+        return GetCourseTagsResponse(
+            status="success",
+            message="Course tags retrieved successfully",
+            tags=tag_details
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while retrieving course tags: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+@router.post("/save_course_tags")
+async def save_course_tags(
+    request: SaveCourseTagsRequest,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Replace all tags for a course with the provided tag IDs.
+    """
+    try:
+        course_id = request.course_id
+
+        course_stmt = select(Course).where(Course.id == course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Delete existing course tags
+        existing_tags_stmt = select(CourseTag).where(CourseTag.course_id == course_id)
+        existing_tags = db.execute(existing_tags_stmt).scalars().all()
+        for ct in existing_tags:
+            db.delete(ct)
+
+        # Add new course tags
+        for tag_id in request.tag_ids:
+            # Verify tag exists
+            tag_stmt = select(Tag).where(Tag.id == tag_id)
+            tag = db.execute(tag_stmt).scalar_one_or_none()
+            if tag is None:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Tag with id '{tag_id}' not found")
+
+            new_ct = CourseTag(
+                id=str(uuid.uuid4()),
+                course_id=course_id,
+                tag_id=tag_id
+            )
+            db.add(new_ct)
+
+        db.commit()
+
+        return SaveCourseTagsResponse(
+            status="success",
+            message="Course tags saved successfully",
+            course_id=course_id,
+            tag_count=len(request.tag_ids)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while saving course tags: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+@router.get("/course/{course_id}/badge")
+async def get_course_badge(
+    course_id: str,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the badge for a specific course.
+    """
+    try:
+        course_stmt = select(Course).where(Course.id == course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        badge = course.badge
+        badge_detail = None
+        if badge:
+            badge_detail = BadgeDetail(
+                id=badge.id,
+                name=badge.name,
+                badge_type=badge.badge_type,
+                icon_name=badge.icon_name,
+                image_url=badge.image_url,
+                course_id=badge.course_id
+            )
+
+        return GetCourseBadgeResponse(
+            status="success",
+            message="Course badge retrieved successfully",
+            badge=badge_detail
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while retrieving course badge: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+@router.post("/create_badge_icon")
+async def create_badge_icon(
+    request: CreateBadgeIconRequest,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Create or replace a badge with a Lucide icon for a course.
+    """
+    try:
+        course_id = request.course_id
+
+        course_stmt = select(Course).where(Course.id == course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        # Delete existing badge if any (including S3 cleanup for image badges)
+        existing_badge = course.badge
+        if existing_badge:
+            if existing_badge.badge_type == "image" and existing_badge.image_url:
+                s3_bucket = os.getenv('AWS_S3_BUCKET_NAME', 'fun2learn-attachments')
+                s3_key = existing_badge.image_url.split('.amazonaws.com/')[-1]
+                try:
+                    delete_file_from_s3(s3_key=s3_key, bucket_name=s3_bucket)
+                except Exception as s3_error:
+                    logger.warning(f"Failed to delete badge image from S3: {str(s3_error)}")
+            db.delete(existing_badge)
+            db.flush()
+
+        badge_id = str(uuid.uuid4())
+        new_badge = Badge(
+            id=badge_id,
+            name=request.name,
+            badge_type="icon",
+            icon_name=request.icon_name,
+            course_id=course_id
+        )
+
+        db.add(new_badge)
+        db.commit()
+        db.refresh(new_badge)
+
+        badge_detail = BadgeDetail(
+            id=new_badge.id,
+            name=new_badge.name,
+            badge_type=new_badge.badge_type,
+            icon_name=new_badge.icon_name,
+            image_url=new_badge.image_url,
+            course_id=new_badge.course_id
+        )
+
+        return CreateBadgeResponse(
+            status="success",
+            message="Icon badge created successfully",
+            badge=badge_detail
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while creating badge icon: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+@router.post("/create_badge_image")
+async def create_badge_image(
+    course_id: str = Form(...),
+    name: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Create or replace a badge with an uploaded image for a course.
+    """
+    try:
+        course_stmt = select(Course).where(Course.id == course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        s3_bucket = os.getenv('AWS_S3_BUCKET_NAME', 'fun2learn-attachments')
+
+        # Delete existing badge if any (including S3 cleanup for image badges)
+        existing_badge = course.badge
+        if existing_badge:
+            if existing_badge.badge_type == "image" and existing_badge.image_url:
+                s3_key = existing_badge.image_url.split('.amazonaws.com/')[-1]
+                try:
+                    delete_file_from_s3(s3_key=s3_key, bucket_name=s3_bucket)
+                except Exception as s3_error:
+                    logger.warning(f"Failed to delete old badge image from S3: {str(s3_error)}")
+            db.delete(existing_badge)
+            db.flush()
+
+        # Upload new image to S3
+        s3_url, s3_key = upload_file_to_s3(
+            file=file,
+            bucket_name=s3_bucket,
+            folder=f"badges/{course_id}"
+        )
+
+        badge_id = str(uuid.uuid4())
+        new_badge = Badge(
+            id=badge_id,
+            name=name,
+            badge_type="image",
+            image_url=s3_url,
+            course_id=course_id
+        )
+
+        db.add(new_badge)
+        db.commit()
+        db.refresh(new_badge)
+
+        badge_detail = BadgeDetail(
+            id=new_badge.id,
+            name=new_badge.name,
+            badge_type=new_badge.badge_type,
+            icon_name=new_badge.icon_name,
+            image_url=new_badge.image_url,
+            course_id=new_badge.course_id
+        )
+
+        return CreateBadgeResponse(
+            status="success",
+            message="Image badge created successfully",
+            badge=badge_detail
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while creating badge image: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
