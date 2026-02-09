@@ -7,7 +7,9 @@ import type {
     AddLessonResponse, AddMCQQuestionResponse, AddTextQuestionResponse,
     GenericResponse, PublishCourseResponse,
     UploadLessonAttachmentResponse, GetLessonAttachmentsResponse,
-    DeleteLessonAttachmentResponse
+    DeleteLessonAttachmentResponse,
+    GetTagsResponse, SaveCourseTagsResponse, GetCourseTagsResponse,
+    CreateBadgeResponse, GetCourseBadgeResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -580,5 +582,149 @@ export const deleteLessonAttachment = async (attachmentId: string) => {
         return { success: data.status === "success", errorMessage: data.status !== "success" ? data.message : undefined };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to delete attachment" };
+    }
+};
+
+// ─── Tags ────────────────────────────────────────────────
+
+export const getTags = async () => {
+    try {
+        const response = await fetch(`${API_URL}/course/tags`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch tags");
+        }
+
+        const data = await response.json() as GetTagsResponse;
+        if (data.status === "success") {
+            return { success: true, tags: data.tags };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch tags" };
+    }
+};
+
+export const getCourseTags = async (courseId: string) => {
+    try {
+        const response = await fetch(`${API_URL}/course/course/${courseId}/tags`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch course tags");
+        }
+
+        const data = await response.json() as GetCourseTagsResponse;
+        if (data.status === "success") {
+            return { success: true, tags: data.tags };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch course tags" };
+    }
+};
+
+export const saveCourseTags = async (courseId: string, tagIds: string[]) => {
+    try {
+        const response = await fetch(`${API_URL}/course/save_course_tags`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ course_id: courseId, tag_ids: tagIds })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to save course tags");
+        }
+
+        const data = await response.json() as SaveCourseTagsResponse;
+        return { success: data.status === "success", errorMessage: data.status !== "success" ? data.message : undefined };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to save course tags" };
+    }
+};
+
+// ─── Badge ───────────────────────────────────────────────
+
+export const getCourseBadge = async (courseId: string) => {
+    try {
+        const response = await fetch(`${API_URL}/course/course/${courseId}/badge`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch course badge");
+        }
+
+        const data = await response.json() as GetCourseBadgeResponse;
+        if (data.status === "success") {
+            return { success: true, badge: data.badge };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch course badge" };
+    }
+};
+
+export const createBadgeIcon = async (courseId: string, name: string, iconName: string) => {
+    try {
+        const response = await fetch(`${API_URL}/course/create_badge_icon`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ course_id: courseId, name, icon_name: iconName })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to create badge");
+        }
+
+        const data = await response.json() as CreateBadgeResponse;
+        if (data.status === "success") {
+            return { success: true, badge: data.badge };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to create badge" };
+    }
+};
+
+export const createBadgeImage = async (courseId: string, name: string, file: File) => {
+    try {
+        const accessToken = Cookies.get("accessToken");
+        const formData = new FormData();
+        formData.append("course_id", courseId);
+        formData.append("name", name);
+        formData.append("file", file);
+
+        const response = await fetch(`${API_URL}/course/create_badge_image`, {
+            method: "POST",
+            headers: {
+                ...(accessToken ? { "Authorization": `Bearer ${accessToken}` } : {})
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to create badge");
+        }
+
+        const data = await response.json() as CreateBadgeResponse;
+        if (data.status === "success") {
+            return { success: true, badge: data.badge };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to create badge" };
     }
 };

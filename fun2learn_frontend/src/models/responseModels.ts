@@ -1,4 +1,4 @@
-import type { CourseSummary, CourseDetail, LessonAttachment } from './types';
+import type { CourseSummary, CourseDetail, LessonAttachment, Tag, Badge } from './types';
 
 export interface LoginResponse {
     status: string;
@@ -98,4 +98,35 @@ export interface GetLessonAttachmentsResponse {
 export interface DeleteLessonAttachmentResponse {
     status: string;
     message: string;
+}
+
+export interface GetTagsResponse {
+    status: string;
+    message: string;
+    tags: Tag[];
+}
+
+export interface SaveCourseTagsResponse {
+    status: string;
+    message: string;
+    course_id: string;
+    tag_count: number;
+}
+
+export interface GetCourseTagsResponse {
+    status: string;
+    message: string;
+    tags: Tag[];
+}
+
+export interface CreateBadgeResponse {
+    status: string;
+    message: string;
+    badge: Badge;
+}
+
+export interface GetCourseBadgeResponse {
+    status: string;
+    message: string;
+    badge: Badge | null;
 }

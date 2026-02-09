@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Send, Loader2, Plus, BookOpen } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, BookOpen, Send } from "lucide-react";
 import { toast } from "sonner";
 import DashboardHeader from "@/components/ui/dashboardHeader";
 import Button from "@/components/ui/button";
@@ -15,7 +15,7 @@ import LessonForm from "@/components/roadmap/lessonForm";
 import QuestionList from "@/components/roadmap/questionList";
 import type { CourseDetail, QuestionDetail } from "@/models/types";
 import {
-    getCourseDetail, publishCourse,
+    getCourseDetail,
     addUnit, editUnit, deleteUnit,
     addChapter, editChapter, deleteChapter,
     addLesson, editLesson, deleteLesson,
@@ -29,7 +29,6 @@ const CourseEditorPage = () => {
 
     const [course, setCourse] = useState<CourseDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isPublishing, setIsPublishing] = useState(false);
 
     // Unit form state
     const [showUnitForm, setShowUnitForm] = useState(false);
@@ -86,16 +85,8 @@ const CourseEditorPage = () => {
 
     // ─── Publish ─────────────────────────────────────────────
 
-    const handlePublish = async () => {
-        setIsPublishing(true);
-        const result = await publishCourse(courseId);
-        if (result.success) {
-            toast.success("Course published successfully!");
-            fetchCourse();
-        } else {
-            toast.error(result.errorMessage || "Failed to publish course");
-        }
-        setIsPublishing(false);
+    const handlePublish = () => {
+        router.push(`/tutor/course/${courseId}/prepublish`);
     };
 
     // ─── Unit Handlers ───────────────────────────────────────
@@ -287,8 +278,6 @@ const CourseEditorPage = () => {
                             {course.status === "draft" && (
                                 <Button
                                     onClick={handlePublish}
-                                    isLoading={isPublishing}
-                                    loadingText="Publishing..."
                                 >
                                     <span className="flex items-center gap-1"><Send size={16} /> Publish Course</span>
                                 </Button>

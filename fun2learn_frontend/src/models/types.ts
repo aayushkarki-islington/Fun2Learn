@@ -92,3 +92,19 @@ export interface LessonAttachment {
     s3_url: string;
     created_at: string;
 }
+
+export interface Tag {
+    id: string;
+    name: string;
+}
+
+export type BadgeType = 'icon' | 'image';
+
+export interface Badge {
+    id: string;
+    name: string;
+    badge_type: BadgeType;
+    icon_name?: string;
+    image_url?: string;
+    course_id: string;
+}
