@@ -16,6 +16,7 @@ class User(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     status = Column(String(20), server_default="active")
     courses = relationship("Course", back_populates="user", cascade="all, delete-orphan")
+    enrollments = relationship("Enrollment", back_populates="user", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = "courses"
@@ -30,6 +31,7 @@ class Course(Base):
     units = relationship("Unit", back_populates="course", cascade="all, delete-orphan")
     course_tags = relationship("CourseTag", back_populates="course", cascade="all, delete-orphan")
     badge = relationship("Badge", back_populates="course", uselist=False, cascade="all, delete-orphan")
+    enrollments = relationship("Enrollment", back_populates="course", cascade="all, delete-orphan")
 
 class Unit(Base):
     __tablename__ = "units"
@@ -133,4 +135,35 @@ class CourseTag(Base):
     course = relationship("Course", back_populates="course_tags")
     tag = relationship("Tag", back_populates="course_tags")
 
+class Enrollment(Base):
+    __tablename__ = "enrollment"
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String(40), server_default="active")
+    enrolled_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    user = relationship("User", back_populates="enrollments")
+    course = relationship("Course", back_populates="enrollments")
 
+class CourseProgress(Base):
+    __tablename__ = "course_progress"
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    current_unit_id = Column(String(40), ForeignKey("units.id", ondelete="SET NULL"), nullable=True)
+    current_chapter_id = Column(String(40), ForeignKey("chapters.id", ondelete="SET NULL"), nullable=True)
+    current_lesson_id = Column(String(40), ForeignKey("lessons.id", ondelete="SET NULL"), nullable=True)
+    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    user = relationship("User")
+    course = relationship("Course")
+    current_unit = relationship("Unit")
+    current_chapter = relationship("Chapter")
+    current_lesson = relationship("Lesson")
+
+class LessonCompletion(Base):
+    __tablename__ = "lesson_completions"
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    lesson_id = Column(String(40), ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    completed_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))

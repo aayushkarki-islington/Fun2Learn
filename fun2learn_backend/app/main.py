@@ -10,7 +10,8 @@ from app.utils.db_utils import ensure_create_all
 from app.routes import (
     authentication_route,
     course_route,
-    user_route
+    user_route,
+    student_route
 )
 
 NON_GATED_ROUTES = [
@@ -119,6 +120,7 @@ def get_application():
     _app.include_router(authentication_route.router, prefix="/api")
     _app.include_router(course_route.router, prefix="/api")
     _app.include_router(user_route.router, prefix="/api")
+    _app.include_router(student_route.router, prefix="/api")
     return _app
 
 app = get_application()

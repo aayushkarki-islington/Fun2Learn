@@ -248,3 +248,112 @@ class GetCourseBadgeResponse(BaseModel):
     status: str
     message: str
     badge: Optional[BadgeDetail] = None
+
+# ---- Student response models ----
+
+class BrowseCourseSummary(BaseModel):
+    id: str
+    name: str
+    description: str
+    tutor_name: str
+    unit_count: int
+    chapter_count: int
+    lesson_count: int
+    enrollment_count: int
+    tags: List[TagDetail]
+    badge: Optional[BadgeDetail] = None
+
+class GetBrowseCoursesResponse(BaseModel):
+    status: str
+    message: str
+    courses: List[BrowseCourseSummary]
+
+class EnrollCourseResponse(BaseModel):
+    status: str
+    message: str
+    enrollment_id: str
+
+class EnrolledCourseSummary(BaseModel):
+    id: str
+    name: str
+    description: str
+    tutor_name: str
+    total_lessons: int
+    completed_lessons: int
+    progress_percent: float
+    current_lesson_name: Optional[str] = None
+    badge: Optional[BadgeDetail] = None
+    enrolled_at: datetime
+
+class GetMyCoursesResponse(BaseModel):
+    status: str
+    message: str
+    courses: List[EnrolledCourseSummary]
+
+class StudentLessonDetail(BaseModel):
+    id: str
+    name: str
+    lesson_index: int
+    question_count: int
+    status: str
+
+class StudentChapterDetail(BaseModel):
+    id: str
+    name: str
+    chapter_index: int
+    lessons: List[StudentLessonDetail]
+    status: str
+
+class StudentUnitDetail(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    unit_index: int
+    chapters: List[StudentChapterDetail]
+    completed_lessons: int
+    total_lessons: int
+
+class StudentCourseDetail(BaseModel):
+    id: str
+    name: str
+    description: str
+    tutor_name: str
+    total_lessons: int
+    completed_lessons: int
+    progress_percent: float
+    units: List[StudentUnitDetail]
+    badge: Optional[BadgeDetail] = None
+
+class GetStudentCourseDetailResponse(BaseModel):
+    status: str
+    message: str
+    course: StudentCourseDetail
+
+class StudentMCQOption(BaseModel):
+    id: str
+    option_text: str
+
+class StudentQuestionDetail(BaseModel):
+    id: str
+    question_text: str
+    question_type: str
+    mcq_options: Optional[List[StudentMCQOption]] = None
+
+class GetStudentLessonResponse(BaseModel):
+    status: str
+    message: str
+    lesson_name: str
+    questions: List[StudentQuestionDetail]
+    attachments: List[LessonAttachmentDetail]
+
+class SubmitAnswerResponse(BaseModel):
+    status: str
+    message: str
+    is_correct: bool
+    correct_answer: Optional[str] = None
+
+class CompleteLessonResponse(BaseModel):
+    status: str
+    message: str
+    next_lesson_id: Optional[str] = None
+    course_completed: bool = False

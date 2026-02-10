@@ -107,3 +107,16 @@ class CreateBadgeIconRequest(BaseModel):
 
 class DeleteBadgeRequest(BaseModel):
     badge_id: str
+
+# Student request models
+
+class EnrollCourseRequest(BaseModel):
+    course_id: str
+
+class SubmitAnswerRequest(BaseModel):
+    question_id: str
+    answer: str
+
+class CompleteLessonRequest(BaseModel):
+    lesson_id: str
+    course_id: str
