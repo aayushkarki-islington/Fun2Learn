@@ -1,4 +1,8 @@
-import type { CourseSummary, CourseDetail, LessonAttachment, Tag, Badge } from './types';
+import type {
+    CourseSummary, CourseDetail, LessonAttachment, Tag, Badge,
+    BrowseCourseSummary, EnrolledCourseSummary, StudentCourseDetail,
+    StudentQuestion
+} from './types';
 
 export interface LoginResponse {
     status: string;
@@ -129,4 +133,52 @@ export interface GetCourseBadgeResponse {
     status: string;
     message: string;
     badge: Badge | null;
+}
+
+// ─── Student response models ────────────────────────────
+
+export interface GetBrowseCoursesResponse {
+    status: string;
+    message: string;
+    courses: BrowseCourseSummary[];
+}
+
+export interface EnrollCourseResponse {
+    status: string;
+    message: string;
+    enrollment_id: string;
+}
+
+export interface GetMyCoursesResponse {
+    status: string;
+    message: string;
+    courses: EnrolledCourseSummary[];
+}
+
+export interface GetStudentCourseDetailResponse {
+    status: string;
+    message: string;
+    course: StudentCourseDetail;
+}
+
+export interface GetStudentLessonResponse {
+    status: string;
+    message: string;
+    lesson_name: string;
+    questions: StudentQuestion[];
+    attachments: LessonAttachment[];
+}
+
+export interface SubmitAnswerResponse {
+    status: string;
+    message: string;
+    is_correct: boolean;
+    correct_answer?: string;
+}
+
+export interface CompleteLessonResponse {
+    status: string;
+    message: string;
+    next_lesson_id?: string;
+    course_completed: boolean;
 }

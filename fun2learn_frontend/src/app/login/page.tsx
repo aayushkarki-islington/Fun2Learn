@@ -10,11 +10,13 @@ import { login } from "@/api/authApi";
 import { LoginRequest } from "@/models/requestModels";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button";
+import { useUser } from "@/context/user-context";
 
 const LoginPage = () => {
     const {theme, toggleTheme} = useTheme();
     const router = useRouter();
     const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+    const { refreshUser } = useUser();
 
     const processLogin = async (email: string, password: string) => {
         let toastId: string | number = "";
@@ -41,6 +43,7 @@ const LoginPage = () => {
             const loginResponse = await login(loginPayload);
 
             if(loginResponse.success){
+                await refreshUser();
                 toast.success("Login successful", {id: toastId, duration: 3000});
                 router.replace("/home");
             }

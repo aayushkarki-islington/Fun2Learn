@@ -87,3 +87,12 @@ body {
 .lesson-circle:hover {
   transform: scale(1.15);
 }
+
+@keyframes bounceSubtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-bounce-subtle {
+  animation: bounceSubtle 2s ease-in-out infinite;
+}

@@ -108,3 +108,84 @@ export interface Badge {
     image_url?: string;
     course_id: string;
 }
+
+// ─── Student types ──────────────────────────────────────
+
+export type LessonStatus = 'completed' | 'current' | 'locked';
+export type ChapterStatus = 'completed' | 'in_progress' | 'locked';
+
+export interface BrowseCourseSummary {
+    id: string;
+    name: string;
+    description: string;
+    tutor_name: string;
+    unit_count: number;
+    chapter_count: number;
+    lesson_count: number;
+    enrollment_count: number;
+    tags: Tag[];
+    badge: Badge | null;
+}
+
+export interface EnrolledCourseSummary {
+    id: string;
+    name: string;
+    description: string;
+    tutor_name: string;
+    total_lessons: number;
+    completed_lessons: number;
+    progress_percent: number;
+    current_lesson_name: string | null;
+    badge: Badge | null;
+    enrolled_at: string;
+}
+
+export interface StudentLessonDetail {
+    id: string;
+    name: string;
+    lesson_index: number;
+    question_count: number;
+    status: LessonStatus;
+}
+
+export interface StudentChapterDetail {
+    id: string;
+    name: string;
+    chapter_index: number;
+    lessons: StudentLessonDetail[];
+    status: ChapterStatus;
+}
+
+export interface StudentUnitDetail {
+    id: string;
+    name: string;
+    description: string | null;
+    unit_index: number;
+    chapters: StudentChapterDetail[];
+    completed_lessons: number;
+    total_lessons: number;
+}
+
+export interface StudentCourseDetail {
+    id: string;
+    name: string;
+    description: string;
+    tutor_name: string;
+    total_lessons: number;
+    completed_lessons: number;
+    progress_percent: number;
+    units: StudentUnitDetail[];
+    badge: Badge | null;
+}
+
+export interface StudentMCQOption {
+    id: string;
+    option_text: string;
+}
+
+export interface StudentQuestion {
+    id: string;
+    question_text: string;
+    question_type: QuestionType;
+    mcq_options?: StudentMCQOption[];
+}
