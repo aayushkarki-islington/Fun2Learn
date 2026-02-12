@@ -12,7 +12,7 @@ class User(Base):
     password = Column(String(255), nullable=False)
     role = Column(String(40), nullable=False, server_default="student")
     gender = Column(String(20), nullable=False)
-    image_path = Column(String(255))
+    image_path = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     status = Column(String(20), server_default="active")
     courses = relationship("Course", back_populates="user", cascade="all, delete-orphan")
@@ -72,7 +72,7 @@ class LessonAttachment(Base):
     __tablename__ = "lesson_attachments"
     id = Column(String(40), primary_key=True)
     file_name = Column(Text, nullable=False)
-    s3_url = Column(String(100))
+    s3_url = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     lesson_id = Column(String(40), ForeignKey("lessons.id", ondelete="CASCADE"))
     lesson = relationship("Lesson", back_populates="lesson_attachments")
@@ -115,7 +115,7 @@ class Badge(Base):
     # badgetype can be 'icon' | 'image' differentiating whether user uses one of available (Lucide) icons, or custom images for badge
     badge_type = Column(String(20), nullable=False)
     icon_name = Column(String(100))
-    image_url = Column(String(100))
+    image_url = Column(Text)
     course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     course = relationship("Course", back_populates="badge")
