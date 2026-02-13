@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Date, TIMESTAMP, Text, Integer, Boolean, ForeignKey, text
+from sqlalchemy import Column, String, Date, TIMESTAMP, Text, Integer, Boolean, ForeignKey, text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.connection.postgres_connection import Base
 
@@ -17,6 +17,8 @@ class User(Base):
     status = Column(String(20), server_default="active")
     courses = relationship("Course", back_populates="user", cascade="all, delete-orphan")
     enrollments = relationship("Enrollment", back_populates="user", cascade="all, delete-orphan")
+    inventory = relationship("UserInventory", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    streak_entries = relationship("StreakEntry", back_populates="user", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = "courses"
@@ -167,3 +169,26 @@ class LessonCompletion(Base):
     lesson_id = Column(String(40), ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False)
     course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
     completed_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+
+class UserInventory(Base):
+    __tablename__ = "user_inventory"
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, unique=True)
+    experience_points = Column(Integer, nullable=False, server_default="0")
+    gems = Column(Integer, nullable=False, server_default="0")
+    streak_freezes = Column(Integer, nullable=False, server_default="0")
+    current_rank = Column(String(50), server_default="beginner")
+    daily_streak = Column(Integer, nullable=False, server_default="0")
+    longest_streak = Column(Integer, nullable=False, server_default="0")
+    last_streak_recorded = Column(Date, nullable=True)
+    user = relationship("User", back_populates="inventory")
+
+class StreakEntry(Base):
+    __tablename__ = "streak_entries"
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    date = Column(Date, nullable=False)
+    user = relationship("User", back_populates="streak_entries")
+    __table_args__ = (
+        UniqueConstraint("user_id", "date", name="uq_streak_entry_user_date"),
+    )

@@ -357,3 +357,12 @@ class CompleteLessonResponse(BaseModel):
     message: str
     next_lesson_id: Optional[str] = None
     course_completed: bool = False
+    streak_updated: bool = False
+    daily_streak: int = 0
+
+class GetStreakResponse(BaseModel):
+    status: str
+    message: str
+    daily_streak: int
+    longest_streak: int
+    streak_active_today: bool

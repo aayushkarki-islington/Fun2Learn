@@ -7,7 +7,7 @@ from datetime import date
 
 from app.models.request_models import SignUpRequest, SignInRequest
 from app.models.response_models import SignUpResponse, SignInResponse, ErrorResponse
-from app.models.db_models import User
+from app.models.db_models import User, UserInventory
 from app.utils.auth_utils import hash_password, verify_password, create_access_token
 from app.utils.db_utils import get_db
 
@@ -68,6 +68,15 @@ async def signup(
         )
 
         db.add(new_user)
+
+        # Create inventory for learner users
+        if request.role == "learner":
+            inventory = UserInventory(
+                id=str(uuid.uuid4()),
+                user_id=user_id
+            )
+            db.add(inventory)
+
         db.commit()
         db.refresh(new_user)
 

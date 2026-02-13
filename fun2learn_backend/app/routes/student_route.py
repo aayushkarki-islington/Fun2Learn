@@ -11,15 +11,18 @@ from app.models.response_models import (
     GetStudentCourseDetailResponse, StudentCourseDetail, StudentUnitDetail, StudentChapterDetail, StudentLessonDetail,
     GetStudentLessonResponse, StudentQuestionDetail, StudentMCQOption, LessonAttachmentDetail,
     SubmitAnswerResponse, CompleteLessonResponse,
-    TagDetail, BadgeDetail
+    TagDetail, BadgeDetail,
+    GetStreakResponse
 )
 import logging
 from sqlalchemy import select, func
 from app.models.db_models import (
     Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer,
-    LessonAttachment, Enrollment, CourseProgress, LessonCompletion, Tag, CourseTag
+    LessonAttachment, Enrollment, CourseProgress, LessonCompletion, Tag, CourseTag,
+    UserInventory, StreakEntry
 )
 from app.utils.exceptions import NotFoundException
+from datetime import date, timedelta
 import uuid
 
 _SHOW_NAME = "student"
@@ -61,6 +64,93 @@ def _count_lessons(course: Course):
         for unit in course.units
         for chapter in unit.chapters
     )
+
+
+def _get_or_create_inventory(user_id: str, db: Session) -> UserInventory:
+    """Get or create UserInventory for a user."""
+    inventory = db.execute(
+        select(UserInventory).where(UserInventory.user_id == user_id)
+    ).scalar_one_or_none()
+
+    if not inventory:
+        inventory = UserInventory(
+            id=str(uuid.uuid4()),
+            user_id=user_id
+        )
+        db.add(inventory)
+        db.flush()
+
+    return inventory
+
+
+def _update_streak(inventory: UserInventory, user_id: str, db: Session) -> bool:
+    """
+    Update daily streak. Returns True if streak was updated (first completion today).
+    Logic:
+    - If last_streak_recorded is today: already counted, no update
+    - If last_streak_recorded is yesterday: increment streak
+    - Otherwise: reset streak to 1
+    Also records a StreakEntry for calendar tracking.
+    """
+    today = date.today()
+
+    if inventory.last_streak_recorded == today:
+        return False
+
+    if inventory.last_streak_recorded == today - timedelta(days=1):
+        inventory.daily_streak += 1
+    else:
+        inventory.daily_streak = 1
+
+    inventory.last_streak_recorded = today
+
+    if inventory.daily_streak > inventory.longest_streak:
+        inventory.longest_streak = inventory.daily_streak
+
+    # Record streak entry for calendar
+    entry = StreakEntry(
+        id=str(uuid.uuid4()),
+        user_id=user_id,
+        date=today
+    )
+    db.add(entry)
+
+    return True
+
+
+@router.get("/streak")
+async def get_streak(
+    current_user: TokenUser = Depends(require_role("learner")),
+    db: Session = Depends(get_db)
+):
+    """Get current user's streak data."""
+    try:
+        inventory = _get_or_create_inventory(current_user.user_id, db)
+        db.commit()
+
+        today = date.today()
+        streak_active_today = inventory.last_streak_recorded == today
+
+        # Check if streak is still valid (not broken)
+        # If last recorded is not today or yesterday, streak is broken
+        daily_streak = inventory.daily_streak
+        if (inventory.last_streak_recorded is not None
+                and inventory.last_streak_recorded != today
+                and inventory.last_streak_recorded != today - timedelta(days=1)):
+            daily_streak = 0
+
+        return GetStreakResponse(
+            status="success",
+            message="Streak data retrieved",
+            daily_streak=daily_streak,
+            longest_streak=inventory.longest_streak,
+            streak_active_today=streak_active_today
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error getting streak: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
 
 
 @router.get("/browse")
@@ -579,13 +669,19 @@ async def complete_lesson(
             progress.current_unit_id = None
             enrollment.status = "completed"
 
+        # Update streak
+        inventory = _get_or_create_inventory(user_id, db)
+        streak_updated = _update_streak(inventory, user_id, db)
+
         db.commit()
 
         return CompleteLessonResponse(
             status="success",
             message="Course completed!" if course_completed else "Lesson completed",
             next_lesson_id=next_lesson_id,
-            course_completed=course_completed
+            course_completed=course_completed,
+            streak_updated=streak_updated,
+            daily_streak=inventory.daily_streak
         )
     except HTTPException:
         raise
