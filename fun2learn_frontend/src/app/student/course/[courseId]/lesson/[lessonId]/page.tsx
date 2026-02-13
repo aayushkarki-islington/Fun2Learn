@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { StudentQuestion, LessonAttachment } from "@/models/types";
 import { getStudentLesson, submitAnswer, completeLesson } from "@/api/studentApi";
-import DashboardHeader from "@/components/ui/dashboardHeader";
+import Sidebar from "@/components/ui/sidebar";
 import QuestionCard from "@/components/student/questionCard";
 import Button from "@/components/ui/button";
 import { ArrowLeft, Download, CheckCircle, ArrowRight, Trophy } from "lucide-react";
@@ -27,10 +27,6 @@ const LessonPage = () => {
     const [lessonCompleted, setLessonCompleted] = useState(false);
     const [nextLessonId, setNextLessonId] = useState<string | null>(null);
     const [courseCompleted, setCourseCompleted] = useState(false);
-
-    const getInitials = (name: string) => {
-        return name.split(" ").map(part => part[0]).join("").toUpperCase().slice(0, 2);
-    };
 
     useEffect(() => {
         loadLesson();
@@ -82,12 +78,8 @@ const LessonPage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <DashboardHeader
-                    userName={user?.full_name ?? "Learner"}
-                    userInitials={user ? getInitials(user.full_name) : "L"}
-                    imageUrl={user?.image_path}
-                />
-                <div className="flex items-center justify-center py-20">
+                <Sidebar />
+                <div className="sidebar-layout flex items-center justify-center py-20">
                     <div className="text-center">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
                         <p className="mt-4 text-gray-600 dark:text-gray-400">Loading lesson...</p>
@@ -99,14 +91,10 @@ const LessonPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <DashboardHeader
-                userName={user?.full_name ?? "Learner"}
-                userInitials={user ? getInitials(user.full_name) : "L"}
-                imageUrl={user?.image_path}
-            />
+            <Sidebar />
 
             {/* Lesson header */}
-            <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div className="sidebar-layout bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
                 <div className="max-w-3xl mx-auto px-6 py-4">
                     <button
                         onClick={() => router.push(`/student/course/${courseId}`)}
@@ -122,7 +110,7 @@ const LessonPage = () => {
                 </div>
             </div>
 
-            <main className="max-w-3xl mx-auto px-6 py-8">
+            <main className="sidebar-layout max-w-3xl mx-auto px-6 py-8">
                 {/* Attachments */}
                 {attachments.length > 0 && (
                     <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">

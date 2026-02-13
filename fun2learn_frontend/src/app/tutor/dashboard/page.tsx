@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CourseSummary } from "@/models/types";
 import { getCourses, createCourse, deleteCourse } from "@/api/courseApi";
-import DashboardHeader from "@/components/ui/dashboardHeader";
+import Sidebar from "@/components/ui/sidebar";
 import StatCard from "@/components/ui/statCard";
 import CourseCard from "@/components/ui/courseCard";
 import Modal from "@/components/ui/modal";
@@ -21,10 +21,6 @@ const TutorDashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-
-    const getInitials = (name: string) => {
-        return name.split(" ").map(part => part[0]).join("").toUpperCase().slice(0, 2);
-    };
 
     // Load courses on mount
     useEffect(() => {
@@ -90,15 +86,10 @@ const TutorDashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Header */}
-            <DashboardHeader
-                userName={user?.full_name ?? "Tutor"}
-                userInitials={user ? getInitials(user.full_name) : "T"}
-                imageUrl={user?.image_path}
-            />
+            <Sidebar />
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-6 py-8">
+            <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 {/* Top Section */}
                 <div className="flex justify-between items-center mb-8">
                     <div>

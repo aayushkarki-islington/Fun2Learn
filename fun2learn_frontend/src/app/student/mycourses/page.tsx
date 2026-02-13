@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { EnrolledCourseSummary } from "@/models/types";
 import { getMyEnrolledCourses } from "@/api/studentApi";
-import DashboardHeader from "@/components/ui/dashboardHeader";
+import Sidebar from "@/components/ui/sidebar";
 import StatCard from "@/components/ui/statCard";
 import StudentCourseCard from "@/components/student/studentCourseCard";
 import Button from "@/components/ui/button";
@@ -17,10 +17,6 @@ const MyCoursesPage = () => {
     const { user } = useUser();
     const [courses, setCourses] = useState<EnrolledCourseSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const getInitials = (name: string) => {
-        return name.split(" ").map(part => part[0]).join("").toUpperCase().slice(0, 2);
-    };
 
     useEffect(() => {
         loadCourses();
@@ -45,13 +41,9 @@ const MyCoursesPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <DashboardHeader
-                userName={user?.full_name ?? "Learner"}
-                userInitials={user ? getInitials(user.full_name) : "L"}
-                imageUrl={user?.image_path}
-            />
+            <Sidebar />
 
-            <main className="max-w-7xl mx-auto px-6 py-8">
+            <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h2 className="font-lilita text-4xl text-gray-800 dark:text-gray-100">

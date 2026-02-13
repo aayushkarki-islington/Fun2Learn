@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, ArrowRight, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
-import DashboardHeader from "@/components/ui/dashboardHeader";
+import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import StepIndicator from "@/components/prepublish/stepIndicator";
 import TagSelector from "@/components/prepublish/tagSelector";
@@ -165,8 +165,8 @@ const PrepublishPage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-                <DashboardHeader userName="Tutor" userInitials="T" />
-                <div className="flex items-center justify-center py-32">
+                <Sidebar />
+                <div className="sidebar-layout flex items-center justify-center py-32">
                     <Loader2 size={48} className="animate-spin text-blue-500" />
                 </div>
             </div>
@@ -177,10 +177,10 @@ const PrepublishPage = () => {
 
     return (
         <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-            <DashboardHeader userName="Tutor" userInitials="T" />
+            <Sidebar />
 
             {/* Header Bar */}
-            <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-18.25 z-40">
+            <div className="sidebar-layout bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
                 <div className="max-w-3xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -203,7 +203,7 @@ const PrepublishPage = () => {
             </div>
 
             {/* Main Content */}
-            <main className="max-w-2xl mx-auto px-6 py-10">
+            <main className="sidebar-layout max-w-2xl mx-auto px-6 py-10">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     {/* Step 1: Tag Selector */}
                     {currentStep === 1 && (

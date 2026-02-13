@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { BrowseCourseSummary } from "@/models/types";
 import { getBrowseCourses, enrollInCourse, getMyEnrolledCourses } from "@/api/studentApi";
-import DashboardHeader from "@/components/ui/dashboardHeader";
+import Sidebar from "@/components/ui/sidebar";
 import BrowseCourseCard from "@/components/student/browseCourseCard";
 import Button from "@/components/ui/button";
 import { Search, BookOpen } from "lucide-react";
@@ -18,10 +18,6 @@ const BrowsePage = () => {
     const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [enrollingId, setEnrollingId] = useState<string | null>(null);
-
-    const getInitials = (name: string) => {
-        return name.split(" ").map(part => part[0]).join("").toUpperCase().slice(0, 2);
-    };
 
     useEffect(() => {
         loadData();
@@ -65,13 +61,9 @@ const BrowsePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <DashboardHeader
-                userName={user?.full_name ?? "Learner"}
-                userInitials={user ? getInitials(user.full_name) : "L"}
-                imageUrl={user?.image_path}
-            />
+            <Sidebar />
 
-            <main className="max-w-7xl mx-auto px-6 py-8">
+            <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h2 className="font-lilita text-4xl text-gray-800 dark:text-gray-100">

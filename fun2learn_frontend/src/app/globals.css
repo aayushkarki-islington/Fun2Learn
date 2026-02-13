@@ -96,3 +96,14 @@ body {
 .animate-bounce-subtle {
   animation: bounceSubtle 2s ease-in-out infinite;
 }
+
+/* Sidebar layout */
+.sidebar-layout {
+  padding-left: 220px;
+}
+
+@media (max-width: 1023px) {
+  .sidebar-layout {
+    padding-left: 0;
+  }
+}
