@@ -24,7 +24,7 @@ export function getHeaders(contentType: string = "application/json"): Headers {
  * @param contentType accepts custom ContentType and applies to header. Defaults to Application/json
  * @returns
  */
-export function getHeadersRaw (contentType: string = "Application/json") {
+export function getHeadersRaw (contentType: string = "application/json") {
     const accessToken = Cookies.get("accessToken");
 
     const headers: Record<string, string> = {

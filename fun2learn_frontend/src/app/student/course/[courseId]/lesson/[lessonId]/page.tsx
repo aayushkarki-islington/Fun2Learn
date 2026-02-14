@@ -7,6 +7,7 @@ import type { StudentQuestion, LessonAttachment } from "@/models/types";
 import { getStudentLesson, submitAnswer, completeLesson } from "@/api/studentApi";
 import Sidebar from "@/components/ui/sidebar";
 import QuestionCard from "@/components/student/questionCard";
+import StreakModal from "@/components/student/streakModal";
 import Button from "@/components/ui/button";
 import { ArrowLeft, Download, CheckCircle, ArrowRight, Trophy } from "lucide-react";
 import { useUser } from "@/context/user-context";
@@ -27,6 +28,8 @@ const LessonPage = () => {
     const [lessonCompleted, setLessonCompleted] = useState(false);
     const [nextLessonId, setNextLessonId] = useState<string | null>(null);
     const [courseCompleted, setCourseCompleted] = useState(false);
+    const [showStreakModal, setShowStreakModal] = useState(false);
+    const [streakCount, setStreakCount] = useState(0);
 
     useEffect(() => {
         loadLesson();
@@ -65,7 +68,13 @@ const LessonPage = () => {
             setLessonCompleted(true);
             setNextLessonId(result.nextLessonId || null);
             setCourseCompleted(result.courseCompleted ?? false);
-            toast.success(result.courseCompleted ? "Course completed!" : "Lesson completed!");
+
+            if (result.streakUpdated) {
+                setStreakCount(result.dailyStreak ?? 1);
+                setShowStreakModal(true);
+            } else {
+                toast.success(result.courseCompleted ? "Course completed!" : "Lesson completed!");
+            }
         } else {
             toast.error(result.errorMessage || "Failed to complete lesson");
         }
@@ -222,6 +231,12 @@ const LessonPage = () => {
                     </div>
                 )}
             </main>
+
+            <StreakModal
+                isOpen={showStreakModal}
+                onClose={() => setShowStreakModal(false)}
+                streakCount={streakCount}
+            />
         </div>
     );
 };

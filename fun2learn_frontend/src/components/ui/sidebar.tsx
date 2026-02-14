@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import Logo from "./logo";
 import { useUser } from "@/context/user-context";
+import { getStreak } from "@/api/studentApi";
 import {
     Search,
-    BookOpen,
     GraduationCap,
     Trophy,
     Swords,
@@ -17,6 +17,7 @@ import {
     BarChart3,
     Menu,
     X,
+    Flame,
 } from "lucide-react";
 
 interface NavItem {
@@ -79,9 +80,23 @@ const Sidebar = () => {
     const pathname = usePathname();
     const { user } = useUser();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [streakCount, setStreakCount] = useState(0);
+    const [streakActiveToday, setStreakActiveToday] = useState(false);
 
     const isTutor = user?.role === "tutor";
     const navItems = isTutor ? tutorNavItems : studentNavItems;
+
+    // Fetch streak data for students
+    useEffect(() => {
+        if (user && !isTutor) {
+            getStreak().then((result) => {
+                if (result.success) {
+                    setStreakCount(result.dailyStreak ?? 0);
+                    setStreakActiveToday(result.streakActiveToday ?? false);
+                }
+            });
+        }
+    }, [user, isTutor]);
 
     const isActive = (item: NavItem) => {
         if (!item.matchPaths) return pathname === item.href;
@@ -104,6 +119,30 @@ const Sidebar = () => {
             <div className="px-4 pt-6 pb-4">
                 <Logo size="md" />
             </div>
+
+            {/* Streak indicator (students only) */}
+            {!isTutor && (
+                <div className="px-3 mb-2">
+                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                        <Flame
+                            size={22}
+                            className={
+                                streakActiveToday
+                                    ? "text-orange-500 drop-shadow-[0_0_6px_rgba(249,115,22,0.5)]"
+                                    : "text-gray-400 dark:text-gray-600"
+                            }
+                            fill={streakActiveToday ? "currentColor" : "none"}
+                        />
+                        <span className={`text-sm font-bold ${
+                            streakActiveToday
+                                ? "text-orange-500"
+                                : "text-gray-400 dark:text-gray-600"
+                        }`}>
+                            {streakCount} day streak
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* Navigation Items */}
             <nav className="flex-1 px-3 py-2">
@@ -152,7 +191,7 @@ const Sidebar = () => {
             {/* Mobile toggle button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="fixed top-4 left-4 z-[60] lg:hidden bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
+                className="fixed top-4 left-4 z-60 lg:hidden bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
             >
                 {mobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -168,7 +207,7 @@ const Sidebar = () => {
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed top-0 left-0 h-full z-50 w-[220px]
+                    fixed top-0 left-0 h-full z-50 w-55
                     bg-white dark:bg-gray-900
                     border-r-2 border-gray-200 dark:border-gray-800
                     flex flex-col

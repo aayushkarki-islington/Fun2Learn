@@ -3,7 +3,8 @@ import { getHeaders } from "./apiUtils";
 import type {
     GetBrowseCoursesResponse, EnrollCourseResponse,
     GetMyCoursesResponse, GetStudentCourseDetailResponse,
-    GetStudentLessonResponse, SubmitAnswerResponse, CompleteLessonResponse
+    GetStudentLessonResponse, SubmitAnswerResponse, CompleteLessonResponse,
+    GetStreakResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -154,10 +155,43 @@ export const completeLesson = async (lessonId: string, courseId: string) => {
 
         const data = await response.json() as CompleteLessonResponse;
         if (data.status === "success") {
-            return { success: true, nextLessonId: data.next_lesson_id, courseCompleted: data.course_completed };
+            return {
+                success: true,
+                nextLessonId: data.next_lesson_id,
+                courseCompleted: data.course_completed,
+                streakUpdated: data.streak_updated,
+                dailyStreak: data.daily_streak
+            };
         }
         return { success: false, errorMessage: data.message };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to complete lesson" };
+    }
+};
+
+export const getStreak = async () => {
+    try {
+        const response = await fetch(`${API_URL}/student/streak`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch streak");
+        }
+
+        const data = await response.json() as GetStreakResponse;
+        if (data.status === "success") {
+            return {
+                success: true,
+                dailyStreak: data.daily_streak,
+                longestStreak: data.longest_streak,
+                streakActiveToday: data.streak_active_today
+            };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch streak" };
     }
 };

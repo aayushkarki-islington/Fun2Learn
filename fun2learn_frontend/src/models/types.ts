@@ -189,3 +189,11 @@ export interface StudentQuestion {
     question_type: QuestionType;
     mcq_options?: StudentMCQOption[];
 }
+
+// ─── Gamification types ─────────────────────────────────
+
+export interface StreakData {
+    daily_streak: number;
+    longest_streak: number;
+    streak_active_today: boolean;
+}

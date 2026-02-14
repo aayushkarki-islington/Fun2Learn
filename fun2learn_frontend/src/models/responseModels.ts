@@ -181,4 +181,14 @@ export interface CompleteLessonResponse {
     message: string;
     next_lesson_id?: string;
     course_completed: boolean;
+    streak_updated: boolean;
+    daily_streak: number;
+}
+
+export interface GetStreakResponse {
+    status: string;
+    message: string;
+    daily_streak: number;
+    longest_streak: number;
+    streak_active_today: boolean;
 }

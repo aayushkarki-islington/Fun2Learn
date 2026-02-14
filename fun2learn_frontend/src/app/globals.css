@@ -97,6 +97,28 @@ body {
   animation: bounceSubtle 2s ease-in-out infinite;
 }
 
+/* Streak animations */
+@keyframes streakPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes streakFlame {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-4px) scale(1.05); }
+  50% { transform: translateY(-2px) scale(0.98); }
+  75% { transform: translateY(-6px) scale(1.03); }
+}
+
+.animate-streak-pop {
+  animation: streakPop 0.4s ease-out;
+}
+
+.animate-streak-flame {
+  animation: streakFlame 1.5s ease-in-out infinite;
+}
+
 /* Sidebar layout */
 .sidebar-layout {
   padding-left: 220px;
