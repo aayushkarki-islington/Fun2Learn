@@ -19,6 +19,7 @@ import {
     X,
     Flame,
 } from "lucide-react";
+import ThemeToggle from "./themeToggle";
 
 interface NavItem {
     label: string;
@@ -172,6 +173,11 @@ const Sidebar = () => {
                     })}
                 </ul>
             </nav>
+
+            {/* Theme Toggle */}
+            <div className="px-3 pb-3">
+                <ThemeToggle />
+            </div>
 
             {/* Logout */}
             <div className="px-3 pb-6">

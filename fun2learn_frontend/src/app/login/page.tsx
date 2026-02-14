@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useTheme } from "@/context/theme-context";
 import Logo from "@/components/ui/logo";
 import { LoginForm } from "@/components/login-form";
 import { toast } from "sonner";
@@ -9,11 +8,10 @@ import { isValidEmail } from "../utils/validationUtils";
 import { login } from "@/api/authApi";
 import { LoginRequest } from "@/models/requestModels";
 import { useRouter } from "next/navigation";
-import Button from "@/components/ui/button";
+import ThemeToggle from "@/components/ui/themeToggle";
 import { useUser } from "@/context/user-context";
 
 const LoginPage = () => {
-    const {theme, toggleTheme} = useTheme();
     const router = useRouter();
     const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
     const { refreshUser } = useUser();
@@ -63,7 +61,9 @@ const LoginPage = () => {
 
     return (
         <div className="bg-primary w-full min-h-screen flex items-center justify-center">
-            <Button variant="ghost" className="fixed top-20 right-20 hover:text-(--primary)" onClick={toggleTheme}>Toggle theme</Button>
+            <div className="fixed top-6 right-6">
+                <ThemeToggle />
+            </div>
             <div className="flex flex-col gap-8">
                 <Logo size="xl" showText={true} />
                 <LoginForm
