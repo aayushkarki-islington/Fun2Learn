@@ -19,6 +19,7 @@ class User(Base):
     enrollments = relationship("Enrollment", back_populates="user", cascade="all, delete-orphan")
     inventory = relationship("UserInventory", back_populates="user", uselist=False, cascade="all, delete-orphan")
     streak_entries = relationship("StreakEntry", back_populates="user", cascade="all, delete-orphan")
+    user_achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = "courses"
@@ -192,3 +193,31 @@ class StreakEntry(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "date", name="uq_streak_entry_user_date"),
     )
+
+class Achievement(Base):
+    __tablename__ = "achievements"
+    id = Column(String(40), primary_key=True)
+    name = Column(Text, nullable=False)
+    description = Column(Text, nullable=False)
+    # achievement_type: 'lessons_completed' | 'streak_days' | 'courses_completed' | 'courses_enrolled'
+    achievement_type = Column(String(50), nullable=False)
+    # goal: the target number to reach (e.g. 100 lessons, 30-day streak)
+    goal = Column(Integer, nullable=False, server_default="1")
+    image_url = Column(Text)
+    user_achievements = relationship("UserAchievement", back_populates="achievement", cascade="all, delete-orphan")
+
+
+class UserAchievement(Base):
+    __tablename__ = "user_achievements"
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    achievement_id = Column(String(40), ForeignKey("achievements.id", ondelete="CASCADE"), nullable=False)
+    progress = Column(Integer, nullable=False, server_default="0")
+    achieved = Column(Boolean, nullable=False, server_default="false")
+    achieved_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    user = relationship("User", back_populates="user_achievements")
+    achievement = relationship("Achievement", back_populates="user_achievements")
+    __table_args__ = (
+        UniqueConstraint("user_id", "achievement_id", name="uq_user_achievement"),
+    )
+

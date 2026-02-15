@@ -366,3 +366,21 @@ class GetStreakResponse(BaseModel):
     daily_streak: int
     longest_streak: int
     streak_active_today: bool
+
+
+class UserAchievementDetail(BaseModel):
+    achievement_id: str
+    name: str
+    description: str
+    achievement_type: str
+    goal: int
+    progress: int
+    achieved: bool
+    achieved_at: Optional[datetime] = None
+    image_url: Optional[str] = None
+
+
+class GetAchievementsResponse(BaseModel):
+    status: str
+    message: str
+    achievements: List[UserAchievementDetail]

@@ -12,14 +12,15 @@ from app.models.response_models import (
     GetStudentLessonResponse, StudentQuestionDetail, StudentMCQOption, LessonAttachmentDetail,
     SubmitAnswerResponse, CompleteLessonResponse,
     TagDetail, BadgeDetail,
-    GetStreakResponse
+    GetStreakResponse,
+    UserAchievementDetail, GetAchievementsResponse
 )
 import logging
 from sqlalchemy import select, func
 from app.models.db_models import (
     Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer,
     LessonAttachment, Enrollment, CourseProgress, LessonCompletion, Tag, CourseTag,
-    UserInventory, StreakEntry
+    UserInventory, StreakEntry, Achievement, UserAchievement
 )
 from app.utils.exceptions import NotFoundException
 from datetime import date, timedelta
@@ -687,4 +688,49 @@ async def complete_lesson(
         raise
     except Exception as e:
         logger.exception(f"Error completing lesson: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.get("/achievements")
+async def get_achievements(
+    current_user: TokenUser = Depends(require_role("learner")),
+    db: Session = Depends(get_db)
+):
+    """Get all achievements with the current user's progress."""
+    try:
+        user_id = current_user.user_id
+
+        achievements = db.execute(
+            select(Achievement).order_by(Achievement.achievement_type, Achievement.goal)
+        ).scalars().all()
+
+        user_ach_rows = db.execute(
+            select(UserAchievement).where(UserAchievement.user_id == user_id)
+        ).scalars().all()
+        user_ach_map = {ua.achievement_id: ua for ua in user_ach_rows}
+
+        result = []
+        for ach in achievements:
+            ua = user_ach_map.get(ach.id)
+            result.append(UserAchievementDetail(
+                achievement_id=ach.id,
+                name=ach.name,
+                description=ach.description,
+                achievement_type=ach.achievement_type,
+                goal=ach.goal,
+                progress=ua.progress if ua else 0,
+                achieved=ua.achieved if ua else False,
+                achieved_at=ua.achieved_at if ua else None,
+                image_url=ach.image_url
+            ))
+
+        return GetAchievementsResponse(
+            status="success",
+            message="Achievements retrieved successfully",
+            achievements=result
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error getting achievements: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
