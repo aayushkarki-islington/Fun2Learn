@@ -197,3 +197,17 @@ export interface StreakData {
     longest_streak: number;
     streak_active_today: boolean;
 }
+
+export type AchievementType = 'lessons_completed' | 'streak_days' | 'courses_completed' | 'courses_enrolled';
+
+export interface UserAchievementDetail {
+    achievement_id: string;
+    name: string;
+    description: string;
+    achievement_type: AchievementType;
+    goal: number;
+    progress: number;
+    achieved: boolean;
+    achieved_at: string | null;
+    image_url: string | null;
+}

@@ -4,7 +4,7 @@ import type {
     GetBrowseCoursesResponse, EnrollCourseResponse,
     GetMyCoursesResponse, GetStudentCourseDetailResponse,
     GetStudentLessonResponse, SubmitAnswerResponse, CompleteLessonResponse,
-    GetStreakResponse
+    GetStreakResponse, GetAchievementsResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -166,6 +166,28 @@ export const completeLesson = async (lessonId: string, courseId: string) => {
         return { success: false, errorMessage: data.message };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to complete lesson" };
+    }
+};
+
+export const getAchievements = async () => {
+    try {
+        const response = await fetch(`${API_URL}/student/achievements`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch achievements");
+        }
+
+        const data = await response.json() as GetAchievementsResponse;
+        if (data.status === "success") {
+            return { success: true, achievements: data.achievements };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch achievements" };
     }
 };
 
