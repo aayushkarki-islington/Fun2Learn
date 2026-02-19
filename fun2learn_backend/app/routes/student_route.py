@@ -10,7 +10,7 @@ from app.models.response_models import (
     GetMyCoursesResponse, EnrolledCourseSummary,
     GetStudentCourseDetailResponse, StudentCourseDetail, StudentUnitDetail, StudentChapterDetail, StudentLessonDetail,
     GetStudentLessonResponse, StudentQuestionDetail, StudentMCQOption, LessonAttachmentDetail,
-    SubmitAnswerResponse, CompleteLessonResponse,
+    SubmitAnswerResponse, CompleteLessonResponse, NewlyUnlockedAchievement,
     TagDetail, BadgeDetail,
     GetStreakResponse,
     UserAchievementDetail, GetAchievementsResponse
@@ -23,7 +23,7 @@ from app.models.db_models import (
     UserInventory, StreakEntry, Achievement, UserAchievement
 )
 from app.utils.exceptions import NotFoundException
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, timezone
 import uuid
 
 _SHOW_NAME = "student"
@@ -117,6 +117,53 @@ def _update_streak(inventory: UserInventory, user_id: str, db: Session) -> bool:
     db.add(entry)
 
     return True
+
+
+def _update_achievement_progress(
+    user_id: str, achievement_type: str, current_value: int, db: Session
+) -> list[NewlyUnlockedAchievement]:
+    """
+    Upsert UserAchievement progress for all achievements of a given type.
+    - Sets progress = current_value on every call.
+    - If current_value >= goal and not yet achieved, marks as achieved.
+    Returns a list of newly unlocked achievements (those that just crossed their goal).
+    """
+    achievements = db.execute(
+        select(Achievement).where(Achievement.achievement_type == achievement_type)
+    ).scalars().all()
+
+    newly_unlocked = []
+
+    for ach in achievements:
+        ua = db.execute(
+            select(UserAchievement).where(
+                UserAchievement.user_id == user_id,
+                UserAchievement.achievement_id == ach.id
+            )
+        ).scalar_one_or_none()
+
+        if ua is None:
+            ua = UserAchievement(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                achievement_id=ach.id,
+                progress=0,
+                achieved=False
+            )
+            db.add(ua)
+
+        ua.progress = current_value
+
+        if not ua.achieved and current_value >= ach.goal:
+            ua.achieved = True
+            ua.achieved_at = datetime.now(timezone.utc)
+            newly_unlocked.append(NewlyUnlockedAchievement(
+                name=ach.name,
+                description=ach.description,
+                achievement_type=ach.achievement_type
+            ))
+
+    return newly_unlocked
 
 
 @router.get("/streak")
@@ -249,6 +296,13 @@ async def enroll_in_course(
             current_lesson_id=first_lesson.id if first_lesson else None
         )
         db.add(new_progress)
+        db.flush()
+
+        # Track courses_enrolled achievement progress
+        enrollment_count = db.execute(
+            select(func.count()).select_from(Enrollment).where(Enrollment.user_id == user_id)
+        ).scalar_one()
+        _update_achievement_progress(user_id, "courses_enrolled", enrollment_count, db)
 
         db.commit()
 
@@ -632,7 +686,8 @@ async def complete_lesson(
             )
         ).scalar_one_or_none()
 
-        if not already_completed:
+        is_new_completion = not already_completed
+        if is_new_completion:
             # Create completion record
             completion = LessonCompletion(
                 id=str(uuid.uuid4()),
@@ -641,6 +696,7 @@ async def complete_lesson(
                 course_id=course_id
             )
             db.add(completion)
+            db.flush()
 
         # Find next lesson
         course = db.execute(select(Course).where(Course.id == course_id)).scalar_one_or_none()
@@ -674,6 +730,33 @@ async def complete_lesson(
         inventory = _get_or_create_inventory(user_id, db)
         streak_updated = _update_streak(inventory, user_id, db)
 
+        # Track achievement progress (only on new completions)
+        newly_unlocked: list[NewlyUnlockedAchievement] = []
+        if is_new_completion:
+            # lessons_completed: total lessons ever completed by this user
+            total_lessons_completed = db.execute(
+                select(func.count()).select_from(LessonCompletion).where(LessonCompletion.user_id == user_id)
+            ).scalar_one()
+            newly_unlocked.extend(
+                _update_achievement_progress(user_id, "lessons_completed", total_lessons_completed, db)
+            )
+
+            # courses_completed: count of enrollments now marked completed
+            if course_completed:
+                completed_courses_count = db.execute(
+                    select(func.count()).select_from(Enrollment)
+                    .where(Enrollment.user_id == user_id, Enrollment.status == "completed")
+                ).scalar_one()
+                newly_unlocked.extend(
+                    _update_achievement_progress(user_id, "courses_completed", completed_courses_count, db)
+                )
+
+            # streak_days: longest streak ever achieved
+            if streak_updated:
+                newly_unlocked.extend(
+                    _update_achievement_progress(user_id, "streak_days", inventory.longest_streak, db)
+                )
+
         db.commit()
 
         return CompleteLessonResponse(
@@ -682,7 +765,8 @@ async def complete_lesson(
             next_lesson_id=next_lesson_id,
             course_completed=course_completed,
             streak_updated=streak_updated,
-            daily_streak=inventory.daily_streak
+            daily_streak=inventory.daily_streak,
+            newly_unlocked_achievements=newly_unlocked
         )
     except HTTPException:
         raise

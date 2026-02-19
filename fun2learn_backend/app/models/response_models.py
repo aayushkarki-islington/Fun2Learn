@@ -352,6 +352,12 @@ class SubmitAnswerResponse(BaseModel):
     is_correct: bool
     correct_answer: Optional[str] = None
 
+class NewlyUnlockedAchievement(BaseModel):
+    name: str
+    description: str
+    achievement_type: str
+
+
 class CompleteLessonResponse(BaseModel):
     status: str
     message: str
@@ -359,6 +365,7 @@ class CompleteLessonResponse(BaseModel):
     course_completed: bool = False
     streak_updated: bool = False
     daily_streak: int = 0
+    newly_unlocked_achievements: List[NewlyUnlockedAchievement] = []
 
 class GetStreakResponse(BaseModel):
     status: str
