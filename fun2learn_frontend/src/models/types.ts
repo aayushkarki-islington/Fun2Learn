@@ -200,6 +200,12 @@ export interface StreakData {
 
 export type AchievementType = 'lessons_completed' | 'streak_days' | 'courses_completed' | 'courses_enrolled';
 
+export interface NewlyUnlockedAchievement {
+    name: string;
+    description: string;
+    achievement_type: AchievementType;
+}
+
 export interface UserAchievementDetail {
     achievement_id: string;
     name: string;

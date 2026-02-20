@@ -1,7 +1,7 @@
 import type {
     CourseSummary, CourseDetail, LessonAttachment, Tag, Badge,
     BrowseCourseSummary, EnrolledCourseSummary, StudentCourseDetail,
-    StudentQuestion, UserAchievementDetail
+    StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement
 } from './types';
 
 export interface LoginResponse {
@@ -183,6 +183,7 @@ export interface CompleteLessonResponse {
     course_completed: boolean;
     streak_updated: boolean;
     daily_streak: number;
+    newly_unlocked_achievements: NewlyUnlockedAchievement[];
 }
 
 export interface GetStreakResponse {

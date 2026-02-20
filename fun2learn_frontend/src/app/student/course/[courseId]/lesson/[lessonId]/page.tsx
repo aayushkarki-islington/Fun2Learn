@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { StudentQuestion, LessonAttachment } from "@/models/types";
+import type { StudentQuestion, LessonAttachment, NewlyUnlockedAchievement } from "@/models/types";
 import { getStudentLesson, submitAnswer, completeLesson } from "@/api/studentApi";
 import Sidebar from "@/components/ui/sidebar";
 import QuestionCard from "@/components/student/questionCard";
 import StreakModal from "@/components/student/streakModal";
+import AchievementUnlockToast from "@/components/student/achievementUnlockToast";
 import Button from "@/components/ui/button";
 import { ArrowLeft, Download, CheckCircle, ArrowRight, Trophy } from "lucide-react";
 import { useUser } from "@/context/user-context";
@@ -30,6 +31,7 @@ const LessonPage = () => {
     const [courseCompleted, setCourseCompleted] = useState(false);
     const [showStreakModal, setShowStreakModal] = useState(false);
     const [streakCount, setStreakCount] = useState(0);
+    const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([]);
 
     useEffect(() => {
         loadLesson();
@@ -69,6 +71,10 @@ const LessonPage = () => {
             setNextLessonId(result.nextLessonId || null);
             setCourseCompleted(result.courseCompleted ?? false);
 
+            if (result.newlyUnlockedAchievements && result.newlyUnlockedAchievements.length > 0) {
+                setAchievementQueue(prev => [...prev, ...result.newlyUnlockedAchievements!]);
+            }
+
             if (result.streakUpdated) {
                 setStreakCount(result.dailyStreak ?? 1);
                 setShowStreakModal(true);
@@ -81,6 +87,10 @@ const LessonPage = () => {
 
         setIsCompleting(false);
     };
+
+    const handleDismissAchievement = useCallback(() => {
+        setAchievementQueue(prev => prev.slice(1));
+    }, []);
 
     const allAnswered = answeredCount >= questions.length && questions.length > 0;
 
@@ -236,6 +246,11 @@ const LessonPage = () => {
                 isOpen={showStreakModal}
                 onClose={() => setShowStreakModal(false)}
                 streakCount={streakCount}
+            />
+
+            <AchievementUnlockToast
+                queue={achievementQueue}
+                onDismissFirst={handleDismissAchievement}
             />
         </div>
     );

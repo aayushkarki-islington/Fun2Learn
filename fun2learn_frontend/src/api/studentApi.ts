@@ -160,7 +160,8 @@ export const completeLesson = async (lessonId: string, courseId: string) => {
                 nextLessonId: data.next_lesson_id,
                 courseCompleted: data.course_completed,
                 streakUpdated: data.streak_updated,
-                dailyStreak: data.daily_streak
+                dailyStreak: data.daily_streak,
+                newlyUnlockedAchievements: data.newly_unlocked_achievements ?? []
             };
         }
         return { success: false, errorMessage: data.message };

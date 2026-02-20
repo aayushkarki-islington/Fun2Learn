@@ -119,6 +119,12 @@ body {
   animation: streakFlame 1.5s ease-in-out infinite;
 }
 
+/* Achievement unlock toast timer bar */
+@keyframes achievementTimer {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
 /* Sidebar layout */
 .sidebar-layout {
   padding-left: 220px;
