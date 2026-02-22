@@ -13,14 +13,15 @@ from app.models.response_models import (
     SubmitAnswerResponse, CompleteLessonResponse, NewlyUnlockedAchievement,
     TagDetail, BadgeDetail,
     GetStreakResponse,
-    UserAchievementDetail, GetAchievementsResponse
+    UserAchievementDetail, GetAchievementsResponse,
+    CompletedQuestInfo, DailyQuestDetail, GetDailyQuestsResponse
 )
 import logging
 from sqlalchemy import select, func
 from app.models.db_models import (
     Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer,
     LessonAttachment, Enrollment, CourseProgress, LessonCompletion, Tag, CourseTag,
-    UserInventory, StreakEntry, Achievement, UserAchievement
+    UserInventory, StreakEntry, Achievement, UserAchievement, UserDailyQuestProgress
 )
 from app.utils.exceptions import NotFoundException
 from datetime import date, timedelta, datetime, timezone
@@ -119,6 +120,115 @@ def _update_streak(inventory: UserInventory, user_id: str, db: Session) -> bool:
     return True
 
 
+DAILY_QUEST_DEFINITIONS = [
+    {
+        "key": "streak_today",
+        "title": "Flame Keeper",
+        "description": "Keep your streak alive today",
+        "icon": "flame",
+        "quest_type": "streak_today",
+        "goal": 1,
+        "gems": 15,
+    },
+    {
+        "key": "complete_3_lessons",
+        "title": "On a Roll",
+        "description": "Complete 3 new lessons today",
+        "icon": "zap",
+        "quest_type": "lessons_today",
+        "goal": 3,
+        "gems": 20,
+    },
+    {
+        "key": "complete_5_lessons",
+        "title": "Knowledge Seeker",
+        "description": "Complete 5 new lessons today",
+        "icon": "book-open",
+        "quest_type": "lessons_today",
+        "goal": 5,
+        "gems": 30,
+    },
+]
+
+
+def _get_or_create_quest_progress(
+    user_id: str, quest_key: str, today: date, db: Session
+) -> UserDailyQuestProgress:
+    qp = db.execute(
+        select(UserDailyQuestProgress).where(
+            UserDailyQuestProgress.user_id == user_id,
+            UserDailyQuestProgress.quest_key == quest_key,
+            UserDailyQuestProgress.date == today,
+        )
+    ).scalar_one_or_none()
+    if not qp:
+        qp = UserDailyQuestProgress(
+            id=str(uuid.uuid4()),
+            user_id=user_id,
+            quest_key=quest_key,
+            date=today,
+            progress=0,
+            completed=False,
+            gems_claimed=False,
+        )
+        db.add(qp)
+    return qp
+
+
+def _update_daily_quests(
+    user_id: str,
+    lessons_today: int,
+    inventory: UserInventory,
+    db: Session,
+) -> tuple[list[CompletedQuestInfo], int, list[DailyQuestDetail]]:
+    """
+    Update daily quest progress based on today's lesson count and streak status.
+    Returns (newly_completed_quests, gems_earned, all_quest_details).
+    """
+    today = date.today()
+    newly_completed: list[CompletedQuestInfo] = []
+    gems_earned = 0
+    all_details: list[DailyQuestDetail] = []
+
+    for qdef in DAILY_QUEST_DEFINITIONS:
+        qp = _get_or_create_quest_progress(user_id, qdef["key"], today, db)
+
+        if qdef["quest_type"] == "lessons_today":
+            qp.progress = min(lessons_today, qdef["goal"])
+        elif qdef["quest_type"] == "streak_today":
+            if inventory.last_streak_recorded == today:
+                qp.progress = 1
+
+        # Award gems for newly completed quests
+        was_completed = qp.completed
+        if qp.progress >= qdef["goal"]:
+            qp.completed = True
+        if qp.completed and not qp.gems_claimed:
+            qp.gems_claimed = True
+            inventory.gems += qdef["gems"]
+            gems_earned += qdef["gems"]
+            if not was_completed:
+                newly_completed.append(CompletedQuestInfo(
+                    key=qdef["key"],
+                    title=qdef["title"],
+                    gems=qdef["gems"],
+                ))
+
+        all_details.append(DailyQuestDetail(
+            key=qdef["key"],
+            title=qdef["title"],
+            description=qdef["description"],
+            icon=qdef["icon"],
+            quest_type=qdef["quest_type"],
+            goal=qdef["goal"],
+            gems=qdef["gems"],
+            progress=qp.progress,
+            completed=qp.completed,
+        ))
+
+    return newly_completed, gems_earned, all_details
+
+
 def _update_achievement_progress(
     user_id: str, achievement_type: str, current_value: int, db: Session
 ) -> list[NewlyUnlockedAchievement]:
@@ -192,7 +302,8 @@ async def get_streak(
             message="Streak data retrieved",
             daily_streak=daily_streak,
             longest_streak=inventory.longest_streak,
-            streak_active_today=streak_active_today
+            streak_active_today=streak_active_today,
+            gems=inventory.gems,
         )
     except HTTPException:
         raise
@@ -757,6 +868,18 @@ async def complete_lesson(
                     _update_achievement_progress(user_id, "streak_days", inventory.longest_streak, db)
                 )
 
+        # Update daily quests (completion record already flushed above, so count is accurate)
+        today = date.today()
+        lessons_today = db.execute(
+            select(func.count()).select_from(LessonCompletion).where(
+                LessonCompletion.user_id == user_id,
+                func.date(LessonCompletion.completed_at) == today,
+            )
+        ).scalar_one()
+        newly_completed_quests, gems_earned, quest_progress = _update_daily_quests(
+            user_id, lessons_today, inventory, db
+        )
+
         db.commit()
 
         return CompleteLessonResponse(
@@ -766,7 +889,11 @@ async def complete_lesson(
             course_completed=course_completed,
             streak_updated=streak_updated,
             daily_streak=inventory.daily_streak,
-            newly_unlocked_achievements=newly_unlocked
+            newly_unlocked_achievements=newly_unlocked,
+            newly_completed_quests=newly_completed_quests,
+            gems_earned=gems_earned,
+            total_gems=inventory.gems,
+            daily_quest_progress=quest_progress,
         )
     except HTTPException:
         raise
@@ -817,4 +944,52 @@ async def get_achievements(
         raise
     except Exception as e:
         logger.exception(f"Error getting achievements: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.get("/daily-quests")
+async def get_daily_quests(
+    current_user: TokenUser = Depends(require_role("learner")),
+    db: Session = Depends(get_db)
+):
+    """Get today's daily quests with the current user's progress."""
+    try:
+        user_id = current_user.user_id
+        today = date.today()
+
+        inventory = _get_or_create_inventory(user_id, db)
+        db.commit()
+
+        quests: list[DailyQuestDetail] = []
+        for qdef in DAILY_QUEST_DEFINITIONS:
+            qp = db.execute(
+                select(UserDailyQuestProgress).where(
+                    UserDailyQuestProgress.user_id == user_id,
+                    UserDailyQuestProgress.quest_key == qdef["key"],
+                    UserDailyQuestProgress.date == today,
+                )
+            ).scalar_one_or_none()
+
+            quests.append(DailyQuestDetail(
+                key=qdef["key"],
+                title=qdef["title"],
+                description=qdef["description"],
+                icon=qdef["icon"],
+                quest_type=qdef["quest_type"],
+                goal=qdef["goal"],
+                gems=qdef["gems"],
+                progress=qp.progress if qp else 0,
+                completed=qp.completed if qp else False,
+            ))
+
+        return GetDailyQuestsResponse(
+            status="success",
+            message="Daily quests retrieved successfully",
+            quests=quests,
+            total_gems=inventory.gems,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error getting daily quests: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")

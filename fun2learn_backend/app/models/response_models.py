@@ -358,6 +358,31 @@ class NewlyUnlockedAchievement(BaseModel):
     achievement_type: str
 
 
+class CompletedQuestInfo(BaseModel):
+    key: str
+    title: str
+    gems: int
+
+
+class DailyQuestDetail(BaseModel):
+    key: str
+    title: str
+    description: str
+    icon: str
+    quest_type: str
+    goal: int
+    gems: int
+    progress: int
+    completed: bool
+
+
+class GetDailyQuestsResponse(BaseModel):
+    status: str
+    message: str
+    quests: List[DailyQuestDetail]
+    total_gems: int
+
+
 class CompleteLessonResponse(BaseModel):
     status: str
     message: str
@@ -366,6 +391,10 @@ class CompleteLessonResponse(BaseModel):
     streak_updated: bool = False
     daily_streak: int = 0
     newly_unlocked_achievements: List[NewlyUnlockedAchievement] = []
+    newly_completed_quests: List[CompletedQuestInfo] = []
+    gems_earned: int = 0
+    total_gems: int = 0
+    daily_quest_progress: List[DailyQuestDetail] = []
 
 class GetStreakResponse(BaseModel):
     status: str
@@ -373,6 +402,7 @@ class GetStreakResponse(BaseModel):
     daily_streak: int
     longest_streak: int
     streak_active_today: bool
+    gems: int = 0
 
 
 class UserAchievementDetail(BaseModel):

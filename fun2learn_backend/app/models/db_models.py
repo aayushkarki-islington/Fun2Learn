@@ -20,6 +20,7 @@ class User(Base):
     inventory = relationship("UserInventory", back_populates="user", uselist=False, cascade="all, delete-orphan")
     streak_entries = relationship("StreakEntry", back_populates="user", cascade="all, delete-orphan")
     user_achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
+    daily_quest_progress = relationship("UserDailyQuestProgress", back_populates="user", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = "courses"
@@ -219,5 +220,20 @@ class UserAchievement(Base):
     achievement = relationship("Achievement", back_populates="user_achievements")
     __table_args__ = (
         UniqueConstraint("user_id", "achievement_id", name="uq_user_achievement"),
+    )
+
+
+class UserDailyQuestProgress(Base):
+    __tablename__ = "user_daily_quest_progress"
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    quest_key = Column(String(50), nullable=False)
+    date = Column(Date, nullable=False)
+    progress = Column(Integer, nullable=False, server_default="0")
+    completed = Column(Boolean, nullable=False, server_default="false")
+    gems_claimed = Column(Boolean, nullable=False, server_default="false")
+    user = relationship("User", back_populates="daily_quest_progress")
+    __table_args__ = (
+        UniqueConstraint("user_id", "quest_key", "date", name="uq_user_quest_date"),
     )
 
