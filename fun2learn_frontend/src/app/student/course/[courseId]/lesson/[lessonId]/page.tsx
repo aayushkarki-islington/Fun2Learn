@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { StudentQuestion, LessonAttachment, NewlyUnlockedAchievement } from "@/models/types";
+import type { StudentQuestion, LessonAttachment, NewlyUnlockedAchievement, DailyQuest } from "@/models/types";
 import { getStudentLesson, submitAnswer, completeLesson } from "@/api/studentApi";
 import Sidebar from "@/components/ui/sidebar";
 import QuestionCard from "@/components/student/questionCard";
@@ -31,6 +31,9 @@ const LessonPage = () => {
     const [courseCompleted, setCourseCompleted] = useState(false);
     const [showStreakModal, setShowStreakModal] = useState(false);
     const [streakCount, setStreakCount] = useState(0);
+    const [streakUpdated, setStreakUpdated] = useState(false);
+    const [questProgress, setQuestProgress] = useState<DailyQuest[]>([]);
+    const [gemsEarned, setGemsEarned] = useState(0);
     const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([]);
 
     useEffect(() => {
@@ -75,12 +78,11 @@ const LessonPage = () => {
                 setAchievementQueue(prev => [...prev, ...result.newlyUnlockedAchievements!]);
             }
 
-            if (result.streakUpdated) {
-                setStreakCount(result.dailyStreak ?? 1);
-                setShowStreakModal(true);
-            } else {
-                toast.success(result.courseCompleted ? "Course completed!" : "Lesson completed!");
-            }
+            setStreakCount(result.dailyStreak ?? 0);
+            setStreakUpdated(result.streakUpdated ?? false);
+            setQuestProgress(result.dailyQuestProgress ?? []);
+            setGemsEarned(result.gemsEarned ?? 0);
+            setShowStreakModal(true);
         } else {
             toast.error(result.errorMessage || "Failed to complete lesson");
         }
@@ -246,6 +248,9 @@ const LessonPage = () => {
                 isOpen={showStreakModal}
                 onClose={() => setShowStreakModal(false)}
                 streakCount={streakCount}
+                streakUpdated={streakUpdated}
+                questProgress={questProgress}
+                gemsEarned={gemsEarned}
             />
 
             <AchievementUnlockToast

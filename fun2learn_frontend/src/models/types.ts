@@ -217,3 +217,25 @@ export interface UserAchievementDetail {
     achieved_at: string | null;
     image_url: string | null;
 }
+
+// ─── Quest types ─────────────────────────────────────────
+
+export type QuestType = 'lessons_today' | 'streak_today';
+
+export interface DailyQuest {
+    key: string;
+    title: string;
+    description: string;
+    icon: string;
+    quest_type: QuestType;
+    goal: number;
+    gems: number;
+    progress: number;
+    completed: boolean;
+}
+
+export interface CompletedQuestInfo {
+    key: string;
+    title: string;
+    gems: number;
+}

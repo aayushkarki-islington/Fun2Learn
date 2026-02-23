@@ -4,7 +4,7 @@ import type {
     GetBrowseCoursesResponse, EnrollCourseResponse,
     GetMyCoursesResponse, GetStudentCourseDetailResponse,
     GetStudentLessonResponse, SubmitAnswerResponse, CompleteLessonResponse,
-    GetStreakResponse, GetAchievementsResponse
+    GetStreakResponse, GetAchievementsResponse, GetDailyQuestsResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -161,7 +161,11 @@ export const completeLesson = async (lessonId: string, courseId: string) => {
                 courseCompleted: data.course_completed,
                 streakUpdated: data.streak_updated,
                 dailyStreak: data.daily_streak,
-                newlyUnlockedAchievements: data.newly_unlocked_achievements ?? []
+                newlyUnlockedAchievements: data.newly_unlocked_achievements ?? [],
+                newlyCompletedQuests: data.newly_completed_quests ?? [],
+                gemsEarned: data.gems_earned ?? 0,
+                totalGems: data.total_gems ?? 0,
+                dailyQuestProgress: data.daily_quest_progress ?? [],
             };
         }
         return { success: false, errorMessage: data.message };
@@ -210,11 +214,34 @@ export const getStreak = async () => {
                 success: true,
                 dailyStreak: data.daily_streak,
                 longestStreak: data.longest_streak,
-                streakActiveToday: data.streak_active_today
+                streakActiveToday: data.streak_active_today,
+                gems: data.gems ?? 0,
             };
         }
         return { success: false, errorMessage: data.message };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch streak" };
+    }
+};
+
+export const getDailyQuests = async () => {
+    try {
+        const response = await fetch(`${API_URL}/student/daily-quests`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch daily quests");
+        }
+
+        const data = await response.json() as GetDailyQuestsResponse;
+        if (data.status === "success") {
+            return { success: true, quests: data.quests, totalGems: data.total_gems };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch daily quests" };
     }
 };

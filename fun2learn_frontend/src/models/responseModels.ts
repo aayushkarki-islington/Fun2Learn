@@ -1,7 +1,8 @@
 import type {
     CourseSummary, CourseDetail, LessonAttachment, Tag, Badge,
     BrowseCourseSummary, EnrolledCourseSummary, StudentCourseDetail,
-    StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement
+    StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement,
+    DailyQuest, CompletedQuestInfo
 } from './types';
 
 export interface LoginResponse {
@@ -184,6 +185,10 @@ export interface CompleteLessonResponse {
     streak_updated: boolean;
     daily_streak: number;
     newly_unlocked_achievements: NewlyUnlockedAchievement[];
+    newly_completed_quests: CompletedQuestInfo[];
+    gems_earned: number;
+    total_gems: number;
+    daily_quest_progress: DailyQuest[];
 }
 
 export interface GetStreakResponse {
@@ -192,6 +197,14 @@ export interface GetStreakResponse {
     daily_streak: number;
     longest_streak: number;
     streak_active_today: boolean;
+    gems: number;
+}
+
+export interface GetDailyQuestsResponse {
+    status: string;
+    message: string;
+    quests: DailyQuest[];
+    total_gems: number;
 }
 
 export interface GetAchievementsResponse {

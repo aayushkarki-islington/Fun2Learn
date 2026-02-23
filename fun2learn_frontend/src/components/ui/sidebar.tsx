@@ -18,6 +18,8 @@ import {
     Menu,
     X,
     Flame,
+    Gem,
+    Medal,
 } from "lucide-react";
 import ThemeToggle from "./themeToggle";
 
@@ -54,6 +56,12 @@ const studentNavItems: NavItem[] = [
         matchPaths: ["/student/quests"],
     },
     {
+        label: "Achievements",
+        icon: <Medal size={24} />,
+        href: "/student/achievements",
+        matchPaths: ["/student/achievements"],
+    },
+    {
         label: "Profile",
         icon: <UserRound size={24} />,
         href: "/student/profile",
@@ -83,17 +91,19 @@ const Sidebar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [streakCount, setStreakCount] = useState(0);
     const [streakActiveToday, setStreakActiveToday] = useState(false);
+    const [gems, setGems] = useState(0);
 
     const isTutor = user?.role === "tutor";
     const navItems = isTutor ? tutorNavItems : studentNavItems;
 
-    // Fetch streak data for students
+    // Fetch streak + gems data for students
     useEffect(() => {
         if (user && !isTutor) {
             getStreak().then((result) => {
                 if (result.success) {
                     setStreakCount(result.dailyStreak ?? 0);
                     setStreakActiveToday(result.streakActiveToday ?? false);
+                    setGems(result.gems ?? 0);
                 }
             });
         }
@@ -121,12 +131,12 @@ const Sidebar = () => {
                 <Logo size="md" />
             </div>
 
-            {/* Streak indicator (students only) */}
+            {/* Streak + Gems indicator (students only) */}
             {!isTutor && (
-                <div className="px-3 mb-2">
-                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                <div className="px-3 mb-2 space-y-1.5">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50">
                         <Flame
-                            size={22}
+                            size={20}
                             className={
                                 streakActiveToday
                                     ? "text-orange-500 drop-shadow-[0_0_6px_rgba(249,115,22,0.5)]"
@@ -140,6 +150,16 @@ const Sidebar = () => {
                                 : "text-gray-400 dark:text-gray-600"
                         }`}>
                             {streakCount} day streak
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                        <Gem
+                            size={20}
+                            className="text-yellow-500"
+                            fill="currentColor"
+                        />
+                        <span className="text-sm font-bold text-yellow-500">
+                            {gems.toLocaleString()} gems
                         </span>
                     </div>
                 </div>
