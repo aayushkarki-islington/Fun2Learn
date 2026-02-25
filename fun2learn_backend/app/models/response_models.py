@@ -395,6 +395,8 @@ class CompleteLessonResponse(BaseModel):
     gems_earned: int = 0
     total_gems: int = 0
     daily_quest_progress: List[DailyQuestDetail] = []
+    xp_earned: int = 0
+    total_xp: int = 0
 
 class GetStreakResponse(BaseModel):
     status: str
@@ -403,6 +405,7 @@ class GetStreakResponse(BaseModel):
     longest_streak: int
     streak_active_today: bool
     gems: int = 0
+    total_xp: int = 0
 
 
 class UserAchievementDetail(BaseModel):

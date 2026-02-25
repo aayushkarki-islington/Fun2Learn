@@ -304,6 +304,7 @@ async def get_streak(
             longest_streak=inventory.longest_streak,
             streak_active_today=streak_active_today,
             gems=inventory.gems,
+            total_xp=inventory.experience_points,
         )
     except HTTPException:
         raise
@@ -837,9 +838,14 @@ async def complete_lesson(
             progress.current_unit_id = None
             enrollment.status = "completed"
 
-        # Update streak
+        # Update streak and award XP
         inventory = _get_or_create_inventory(user_id, db)
         streak_updated = _update_streak(inventory, user_id, db)
+
+        xp_earned = 0
+        if is_new_completion:
+            xp_earned = 30
+            inventory.experience_points += xp_earned
 
         # Track achievement progress (only on new completions)
         newly_unlocked: list[NewlyUnlockedAchievement] = []
@@ -894,6 +900,8 @@ async def complete_lesson(
             gems_earned=gems_earned,
             total_gems=inventory.gems,
             daily_quest_progress=quest_progress,
+            xp_earned=xp_earned,
+            total_xp=inventory.experience_points,
         )
     except HTTPException:
         raise
