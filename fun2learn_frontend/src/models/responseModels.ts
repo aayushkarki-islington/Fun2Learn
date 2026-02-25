@@ -189,6 +189,8 @@ export interface CompleteLessonResponse {
     gems_earned: number;
     total_gems: number;
     daily_quest_progress: DailyQuest[];
+    xp_earned: number;
+    total_xp: number;
 }
 
 export interface GetStreakResponse {
@@ -198,6 +200,7 @@ export interface GetStreakResponse {
     longest_streak: number;
     streak_active_today: boolean;
     gems: number;
+    total_xp: number;
 }
 
 export interface GetDailyQuestsResponse {

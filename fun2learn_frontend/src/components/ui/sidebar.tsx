@@ -19,7 +19,7 @@ import {
     X,
     Flame,
     Gem,
-    Medal,
+    Medal
 } from "lucide-react";
 import ThemeToggle from "./themeToggle";
 

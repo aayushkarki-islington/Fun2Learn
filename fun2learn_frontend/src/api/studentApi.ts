@@ -166,6 +166,8 @@ export const completeLesson = async (lessonId: string, courseId: string) => {
                 gemsEarned: data.gems_earned ?? 0,
                 totalGems: data.total_gems ?? 0,
                 dailyQuestProgress: data.daily_quest_progress ?? [],
+                xpEarned: data.xp_earned ?? 0,
+                totalXp: data.total_xp ?? 0,
             };
         }
         return { success: false, errorMessage: data.message };
@@ -216,6 +218,7 @@ export const getStreak = async () => {
                 longestStreak: data.longest_streak,
                 streakActiveToday: data.streak_active_today,
                 gems: data.gems ?? 0,
+                totalXp: data.total_xp ?? 0,
             };
         }
         return { success: false, errorMessage: data.message };
