@@ -424,3 +424,25 @@ class GetAchievementsResponse(BaseModel):
     status: str
     message: str
     achievements: List[UserAchievementDetail]
+
+
+class LeaderboardMemberDetail(BaseModel):
+    user_id: str
+    full_name: str
+    xp_earned: int
+    rank_position: int
+
+
+class GetLeaderboardResponse(BaseModel):
+    status: str
+    message: str
+    leaderboard_id: str
+    rank: str
+    week_start: datetime
+    week_end: datetime
+    members: List[LeaderboardMemberDetail]
+    my_position: int
+    my_xp: int
+    promotion_zone: int
+    relegation_zone: int
+    total_members: int

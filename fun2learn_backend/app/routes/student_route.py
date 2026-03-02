@@ -14,15 +14,18 @@ from app.models.response_models import (
     TagDetail, BadgeDetail,
     GetStreakResponse,
     UserAchievementDetail, GetAchievementsResponse,
-    CompletedQuestInfo, DailyQuestDetail, GetDailyQuestsResponse
+    CompletedQuestInfo, DailyQuestDetail, GetDailyQuestsResponse,
+    LeaderboardMemberDetail, GetLeaderboardResponse
 )
 import logging
 from sqlalchemy import select, func
 from app.models.db_models import (
     Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer,
     LessonAttachment, Enrollment, CourseProgress, LessonCompletion, Tag, CourseTag,
-    UserInventory, StreakEntry, Achievement, UserAchievement, UserDailyQuestProgress
+    UserInventory, StreakEntry, Achievement, UserAchievement, UserDailyQuestProgress,
+    Leaderboard, LeaderboardEntry
 )
+from app.utils.leaderboard_utils import RANKS, LEADERBOARD_MAX_SIZE, PROMOTION_COUNT, RELEGATION_COUNT, get_current_week_bounds
 from app.utils.exceptions import NotFoundException
 from datetime import date, timedelta, datetime, timezone
 import uuid
@@ -847,6 +850,53 @@ async def complete_lesson(
             xp_earned = 30
             inventory.experience_points += xp_earned
 
+            # Update leaderboard XP — auto-join if not yet assigned this week
+            week_start, week_end = get_current_week_bounds()
+            lb_entry = db.execute(
+                select(LeaderboardEntry)
+                .join(Leaderboard)
+                .where(
+                    LeaderboardEntry.user_id == user_id,
+                    Leaderboard.status == "open",
+                    Leaderboard.week_start >= week_start,
+                    Leaderboard.week_start < week_end,
+                )
+            ).scalar_one_or_none()
+            if not lb_entry:
+                user_rank = inventory.current_rank if inventory.current_rank in RANKS else RANKS[0]
+                candidates = db.execute(
+                    select(Leaderboard).where(
+                        Leaderboard.rank == user_rank,
+                        Leaderboard.status == "open",
+                        Leaderboard.week_start >= week_start,
+                        Leaderboard.week_start < week_end,
+                    )
+                ).scalars().all()
+                lb = None
+                for candidate in candidates:
+                    if len(candidate.entries) < LEADERBOARD_MAX_SIZE:
+                        lb = candidate
+                        break
+                if not lb:
+                    lb = Leaderboard(
+                        id=str(uuid.uuid4()),
+                        rank=user_rank,
+                        status="open",
+                        week_start=week_start,
+                        week_end=week_end,
+                    )
+                    db.add(lb)
+                    db.flush()
+                lb_entry = LeaderboardEntry(
+                    id=str(uuid.uuid4()),
+                    leaderboard_id=lb.id,
+                    user_id=user_id,
+                    xp_earned=0,
+                )
+                db.add(lb_entry)
+                db.flush()
+            lb_entry.xp_earned += xp_earned
+
         # Track achievement progress (only on new completions)
         newly_unlocked: list[NewlyUnlockedAchievement] = []
         if is_new_completion:
@@ -1000,4 +1050,120 @@ async def get_daily_quests(
         raise
     except Exception as e:
         logger.exception(f"Error getting daily quests: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.get("/leaderboard")
+async def get_leaderboard(
+    current_user: TokenUser = Depends(require_role("learner")),
+    db: Session = Depends(get_db)
+):
+    """Get or join the current week's leaderboard for the authenticated student."""
+    try:
+        user_id = current_user.user_id
+
+        # Close any expired leaderboards and update ranks before assigning the user.
+        # This is the reliable reset path — the APScheduler job is best-effort only.
+        from app.utils.leaderboard_utils import process_leaderboard_resets
+        process_leaderboard_resets(db)
+
+        inventory = _get_or_create_inventory(user_id, db)
+        user_rank = inventory.current_rank if inventory.current_rank in RANKS else RANKS[0]
+
+        week_start, week_end = get_current_week_bounds()
+
+        # Check if user already has an active entry this week
+        existing_entry = db.execute(
+            select(LeaderboardEntry)
+            .join(Leaderboard)
+            .where(
+                LeaderboardEntry.user_id == user_id,
+                Leaderboard.status == "open",
+                Leaderboard.week_start >= week_start,
+                Leaderboard.week_start < week_end,
+            )
+        ).scalar_one_or_none()
+
+        if existing_entry:
+            lb = existing_entry.leaderboard
+            my_entry = existing_entry
+        else:
+            # Find an open leaderboard with room, or create one
+            candidates = db.execute(
+                select(Leaderboard).where(
+                    Leaderboard.rank == user_rank,
+                    Leaderboard.status == "open",
+                    Leaderboard.week_start >= week_start,
+                    Leaderboard.week_start < week_end,
+                )
+            ).scalars().all()
+
+            lb = None
+            for candidate in candidates:
+                if len(candidate.entries) < LEADERBOARD_MAX_SIZE:
+                    lb = candidate
+                    break
+
+            if not lb:
+                lb = Leaderboard(
+                    id=str(uuid.uuid4()),
+                    rank=user_rank,
+                    status="open",
+                    week_start=week_start,
+                    week_end=week_end,
+                )
+                db.add(lb)
+                db.flush()
+
+            my_entry = LeaderboardEntry(
+                id=str(uuid.uuid4()),
+                leaderboard_id=lb.id,
+                user_id=user_id,
+                xp_earned=0,
+            )
+            db.add(my_entry)
+            db.flush()
+
+        db.commit()
+        db.refresh(lb)
+
+        # Build sorted member list
+        entries = sorted(lb.entries, key=lambda e: e.xp_earned, reverse=True)
+        n = len(entries)
+
+        members = []
+        my_position = 1
+        my_xp = my_entry.xp_earned
+
+        for i, entry in enumerate(entries):
+            members.append(LeaderboardMemberDetail(
+                user_id=entry.user_id,
+                full_name=entry.user.full_name,
+                xp_earned=entry.xp_earned,
+                rank_position=i + 1,
+            ))
+            if entry.user_id == user_id:
+                my_position = i + 1
+                my_xp = entry.xp_earned
+
+        effective_relegation = RELEGATION_COUNT if n >= (PROMOTION_COUNT + RELEGATION_COUNT) else 0
+
+        return GetLeaderboardResponse(
+            status="success",
+            message="Leaderboard retrieved",
+            leaderboard_id=lb.id,
+            rank=lb.rank,
+            week_start=lb.week_start,
+            week_end=lb.week_end,
+            members=members,
+            my_position=my_position,
+            my_xp=my_xp,
+            promotion_zone=PROMOTION_COUNT,
+            relegation_zone=effective_relegation,
+            total_members=n,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error getting leaderboard: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")

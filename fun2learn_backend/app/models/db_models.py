@@ -21,6 +21,7 @@ class User(Base):
     streak_entries = relationship("StreakEntry", back_populates="user", cascade="all, delete-orphan")
     user_achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
     daily_quest_progress = relationship("UserDailyQuestProgress", back_populates="user", cascade="all, delete-orphan")
+    leaderboard_entries = relationship("LeaderboardEntry", back_populates="user", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = "courses"
@@ -237,3 +238,27 @@ class UserDailyQuestProgress(Base):
         UniqueConstraint("user_id", "quest_key", "date", name="uq_user_quest_date"),
     )
 
+
+class Leaderboard(Base):
+    __tablename__ = "leaderboards"
+
+    id = Column(String(40), primary_key=True)
+    rank = Column(String(50), nullable=False)
+    status = Column(String(20), nullable=False, server_default="open")  # "open" | "closed"
+    week_start = Column(TIMESTAMP(timezone=True), nullable=False)
+    week_end = Column(TIMESTAMP(timezone=True), nullable=False)
+    entries = relationship("LeaderboardEntry", back_populates="leaderboard", cascade="all, delete-orphan")
+
+
+class LeaderboardEntry(Base):
+    __tablename__ = "leaderboard_entries"
+
+    id = Column(String(40), primary_key=True)
+    leaderboard_id = Column(String(40), ForeignKey("leaderboards.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    xp_earned = Column(Integer, nullable=False, server_default="0")
+    leaderboard = relationship("Leaderboard", back_populates="entries")
+    user = relationship("User", back_populates="leaderboard_entries")
+    __table_args__ = (
+        UniqueConstraint("leaderboard_id", "user_id", name="uq_leaderboard_entry_user"),
+    )

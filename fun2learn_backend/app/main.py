@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from app.utils.logging_utils import setup_logging
 import logging
 from app.utils.db_utils import ensure_create_all
+from contextlib import asynccontextmanager
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 #Importing all the routes that handle APIs
 from app.routes import (
@@ -19,6 +22,31 @@ NON_GATED_ROUTES = [
     "/api/auth/signup",
 ]
 
+def run_leaderboard_reset():
+    """Scheduled job: process weekly leaderboard promotions/demotions."""
+    from app.connection.postgres_connection import SessionLocal
+    from app.utils.leaderboard_utils import process_leaderboard_resets
+    logger = logging.getLogger(__name__)
+    db = SessionLocal()
+    try:
+        process_leaderboard_resets(db)
+        logger.info("Weekly leaderboard reset completed")
+    except Exception as e:
+        logger.error(f"Error during leaderboard reset: {e}")
+    finally:
+        db.close()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(run_leaderboard_reset, CronTrigger(day_of_week="sun", hour=0, minute=0))
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler.start()
+    logging.getLogger(__name__).info("APScheduler started — leaderboard resets every Sunday midnight")
+    yield
+    scheduler.shutdown()
+    logging.getLogger(__name__).info("APScheduler shut down")
+
 def get_application():
     """Create a new FastAPI application."""
 
@@ -28,6 +56,7 @@ def get_application():
     logger = logging.getLogger(__name__)
 
     _app = FastAPI(
+        lifespan=lifespan,
         debug=False,
         swagger_ui_parameters={
             "defaultModelsExpandDepth": -1,
