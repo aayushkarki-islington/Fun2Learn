@@ -239,3 +239,27 @@ export interface CompletedQuestInfo {
     title: string;
     gems: number;
 }
+
+// ─── Leaderboard types ──────────────────────────────────
+
+export type LeaderboardRank = 'bronze' | 'silver' | 'gold' | 'platinum' | 'ruby' | 'pearl' | 'diamond' | 'champions';
+
+export interface LeaderboardMember {
+    user_id: string;
+    full_name: string;
+    xp_earned: number;
+    rank_position: number;
+}
+
+export interface LeaderboardData {
+    leaderboard_id: string;
+    rank: LeaderboardRank;
+    week_start: string;
+    week_end: string;
+    members: LeaderboardMember[];
+    my_position: number;
+    my_xp: number;
+    promotion_zone: number;
+    relegation_zone: number;
+    total_members: number;
+}

@@ -4,7 +4,8 @@ import type {
     GetBrowseCoursesResponse, EnrollCourseResponse,
     GetMyCoursesResponse, GetStudentCourseDetailResponse,
     GetStudentLessonResponse, SubmitAnswerResponse, CompleteLessonResponse,
-    GetStreakResponse, GetAchievementsResponse, GetDailyQuestsResponse
+    GetStreakResponse, GetAchievementsResponse, GetDailyQuestsResponse,
+    GetLeaderboardResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -246,5 +247,39 @@ export const getDailyQuests = async () => {
         return { success: false, errorMessage: data.message };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch daily quests" };
+    }
+};
+
+export const getLeaderboard = async () => {
+    try {
+        const response = await fetch(`${API_URL}/student/leaderboard`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch leaderboard");
+        }
+
+        const data = await response.json() as GetLeaderboardResponse;
+        if (data.status === "success") {
+            return {
+                success: true,
+                leaderboardId: data.leaderboard_id,
+                rank: data.rank,
+                weekStart: data.week_start,
+                weekEnd: data.week_end,
+                members: data.members,
+                myPosition: data.my_position,
+                myXp: data.my_xp,
+                promotionZone: data.promotion_zone,
+                relegationZone: data.relegation_zone,
+                totalMembers: data.total_members,
+            };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch leaderboard" };
     }
 };

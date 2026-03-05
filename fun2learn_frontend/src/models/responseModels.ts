@@ -2,7 +2,7 @@ import type {
     CourseSummary, CourseDetail, LessonAttachment, Tag, Badge,
     BrowseCourseSummary, EnrolledCourseSummary, StudentCourseDetail,
     StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement,
-    DailyQuest, CompletedQuestInfo
+    DailyQuest, CompletedQuestInfo, LeaderboardMember, LeaderboardData
 } from './types';
 
 export interface LoginResponse {
@@ -214,4 +214,19 @@ export interface GetAchievementsResponse {
     status: string;
     message: string;
     achievements: UserAchievementDetail[];
+}
+
+export interface GetLeaderboardResponse {
+    status: string;
+    message: string;
+    leaderboard_id: string;
+    rank: string;
+    week_start: string;
+    week_end: string;
+    members: LeaderboardMember[];
+    my_position: number;
+    my_xp: number;
+    promotion_zone: number;
+    relegation_zone: number;
+    total_members: number;
 }
