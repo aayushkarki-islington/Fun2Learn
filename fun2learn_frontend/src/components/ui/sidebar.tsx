@@ -19,7 +19,8 @@ import {
     X,
     Flame,
     Gem,
-    Medal
+    Medal,
+    ShoppingBag
 } from "lucide-react";
 import ThemeToggle from "./themeToggle";
 
@@ -60,6 +61,12 @@ const studentNavItems: NavItem[] = [
         icon: <Medal size={24} />,
         href: "/student/achievements",
         matchPaths: ["/student/achievements"],
+    },
+    {
+        label: "Shop",
+        icon: <ShoppingBag size={24} />,
+        href: "/student/marketplace",
+        matchPaths: ["/student/marketplace"],
     },
     {
         label: "Profile",
