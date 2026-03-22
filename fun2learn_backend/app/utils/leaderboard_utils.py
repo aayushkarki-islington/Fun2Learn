@@ -48,7 +48,7 @@ def process_leaderboard_resets(db: Session) -> None:
             current_rank = inventory.current_rank if inventory.current_rank in RANKS else RANKS[0]
             current_idx = RANKS.index(current_rank)
 
-            if i < PROMOTION_COUNT:
+            if i < PROMOTION_COUNT and entry.xp_earned > 0:
                 # Top 3 → promote (champions stay at top)
                 inventory.current_rank = RANKS[min(current_idx + 1, len(RANKS) - 1)]
             elif n >= (PROMOTION_COUNT + RELEGATION_COUNT) and i >= n - RELEGATION_COUNT:

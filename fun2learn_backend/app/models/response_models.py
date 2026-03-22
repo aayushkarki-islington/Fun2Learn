@@ -446,3 +446,20 @@ class GetLeaderboardResponse(BaseModel):
     promotion_zone: int
     relegation_zone: int
     total_members: int
+
+
+class InitiatePaymentResponse(BaseModel):
+    status: str
+    message: str
+    amount: str
+    tax_amount: str
+    total_amount: str
+    transaction_uuid: str
+    product_code: str
+    product_service_charge: str
+    product_delivery_charge: str
+    success_url: str
+    failure_url: str
+    signed_field_names: str
+    signature: str
+    epay_url: str

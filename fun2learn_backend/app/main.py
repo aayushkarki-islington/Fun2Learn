@@ -14,12 +14,15 @@ from app.routes import (
     authentication_route,
     course_route,
     user_route,
-    student_route
+    student_route,
+    payment_route
 )
 
 NON_GATED_ROUTES = [
     "/api/auth/login",
     "/api/auth/signup",
+    "/api/payment/success",
+    "/api/payment/failure",
 ]
 
 def run_leaderboard_reset():
@@ -150,6 +153,7 @@ def get_application():
     _app.include_router(course_route.router, prefix="/api")
     _app.include_router(user_route.router, prefix="/api")
     _app.include_router(student_route.router, prefix="/api")
+    _app.include_router(payment_route.router, prefix="/api")
     return _app
 
 app = get_application()

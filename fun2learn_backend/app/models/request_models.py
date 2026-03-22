@@ -120,3 +120,6 @@ class SubmitAnswerRequest(BaseModel):
 class CompleteLessonRequest(BaseModel):
     lesson_id: str
     course_id: str
+
+class InitiatePaymentRequest(BaseModel):
+    package_id: str

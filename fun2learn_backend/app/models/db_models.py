@@ -262,3 +262,16 @@ class LeaderboardEntry(Base):
     __table_args__ = (
         UniqueConstraint("leaderboard_id", "user_id", name="uq_leaderboard_entry_user"),
     )
+
+
+class GemPurchaseOrder(Base):
+    __tablename__ = "gem_purchase_orders"
+
+    id = Column(String(40), primary_key=True)
+    transaction_uuid = Column(String(100), unique=True, nullable=False)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    gems = Column(Integer, nullable=False)
+    amount_rs = Column(Integer, nullable=False)
+    # "pending" | "completed" | "failed"
+    status = Column(String(20), nullable=False, server_default="pending")
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
