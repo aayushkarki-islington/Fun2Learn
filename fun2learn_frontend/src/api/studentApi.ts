@@ -5,7 +5,7 @@ import type {
     GetMyCoursesResponse, GetStudentCourseDetailResponse,
     GetStudentLessonResponse, SubmitAnswerResponse, CompleteLessonResponse,
     GetStreakResponse, GetAchievementsResponse, GetDailyQuestsResponse,
-    GetLeaderboardResponse
+    GetLeaderboardResponse, InitiatePaymentResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -247,6 +247,29 @@ export const getDailyQuests = async () => {
         return { success: false, errorMessage: data.message };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch daily quests" };
+    }
+};
+
+export const initiatePayment = async (packageId: string) => {
+    try {
+        const response = await fetch(`${API_URL}/payment/initiate`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ package_id: packageId }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to initiate payment");
+        }
+
+        const data = await response.json() as InitiatePaymentResponse;
+        if (data.status === "success") {
+            return { success: true, data };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to initiate payment" };
     }
 };
 

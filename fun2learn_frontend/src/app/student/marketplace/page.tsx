@@ -4,6 +4,8 @@ import { useState } from "react";
 import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import Image from "next/image";
+import { toast } from "sonner";
+import { initiatePayment } from "@/api/studentApi";
 import { Gem, X, ShoppingBag, Zap, Tag } from "lucide-react";
 
 interface GemPackage {
@@ -61,6 +63,50 @@ function discountPercent(pkg: GemPackage) {
     return Math.round(((pkg.originalPriceRs - pkg.priceRs) / pkg.originalPriceRs) * 100);
 }
 
+function submitEsewaForm(data: {
+    amount: string;
+    tax_amount: string;
+    total_amount: string;
+    transaction_uuid: string;
+    product_code: string;
+    product_service_charge: string;
+    product_delivery_charge: string;
+    success_url: string;
+    failure_url: string;
+    signed_field_names: string;
+    signature: string;
+    epay_url: string;
+}) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = data.epay_url;
+
+    const fields: Record<string, string> = {
+        amount: data.amount,
+        tax_amount: data.tax_amount,
+        total_amount: data.total_amount,
+        transaction_uuid: data.transaction_uuid,
+        product_code: data.product_code,
+        product_service_charge: data.product_service_charge,
+        product_delivery_charge: data.product_delivery_charge,
+        success_url: data.success_url,
+        failure_url: data.failure_url,
+        signed_field_names: data.signed_field_names,
+        signature: data.signature,
+    };
+
+    for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
 /* ── Payment Modal ── */
 interface PaymentModalProps {
     pkg: GemPackage;
@@ -68,11 +114,25 @@ interface PaymentModalProps {
 }
 
 const PaymentModal = ({ pkg, onClose }: PaymentModalProps) => {
+    const [isLoading, setIsLoading] = useState(false);
     const discount = discountPercent(pkg);
 
-    // Close on backdrop click
     const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !isLoading) onClose();
+    };
+
+    const handleEsewaPay = async () => {
+        setIsLoading(true);
+        const result = await initiatePayment(pkg.id);
+        console.log("💳 Recieved payment information:", result);
+        sessionStorage.setItem("esewa_debug", JSON.stringify(result));
+        if (!result.success || !result.data) {
+            toast.error(result.errorMessage || "Failed to initiate payment");
+            setIsLoading(false);
+            return;
+        }
+        // Hand off to eSewa — browser navigates away, no need to reset loading
+        submitEsewaForm(result.data);
     };
 
     return (
@@ -86,7 +146,8 @@ const PaymentModal = ({ pkg, onClose }: PaymentModalProps) => {
                     <h2 className="font-lilita text-2xl">Checkout</h2>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+                        disabled={isLoading}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <X size={20} />
                     </button>
@@ -121,31 +182,31 @@ const PaymentModal = ({ pkg, onClose }: PaymentModalProps) => {
                     {/* Divider */}
                     <div className="border-t border-gray-200 dark:border-gray-700" />
 
-                    {/* Payment method label */}
+                    {/* Payment method */}
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
                             Payment Method
                         </p>
 
-                        {/* eSewa button — non-interactive placeholder */}
                         <button
-                            disabled
-                            className="w-full flex items-center justify-center gap-3 py-3.5 px-5 rounded-xl border-2 border-green-400 bg-green-50 dark:bg-green-900/20 cursor-not-allowed opacity-70"
+                            onClick={handleEsewaPay}
+                            disabled={isLoading}
+                            className="w-full flex items-center justify-center gap-3 py-3.5 px-5 rounded-xl border-2 border-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {/* eSewa icon */}
-                            <Image
-                                src={'/images/esewa-logo.webp'}
-                                alt={"Esewa-Logo"}
-                                width={32}
-                                height={32}
-                            />
+                            {isLoading ? (
+                                <span className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-green-600 border-t-transparent" />
+                            ) : (
+                                <Image
+                                    src="/images/esewa-logo.webp"
+                                    alt="eSewa"
+                                    width={32}
+                                    height={32}
+                                />
+                            )}
                             <span className="font-bold text-green-700 dark:text-green-300 text-base">
-                                Pay via eSewa
+                                {isLoading ? "Redirecting to eSewa..." : "Pay via eSewa"}
                             </span>
                         </button>
-                        <p className="text-center text-xs text-gray-400 dark:text-gray-600 mt-2">
-                            Payment integration coming soon
-                        </p>
                     </div>
                 </div>
             </div>
@@ -266,7 +327,7 @@ const MarketplacePage = () => {
                     </p>
                 </div>
 
-                {/* What are gems info strip */}
+                {/* Info strip */}
                 <div className="flex items-center gap-3 mb-8 px-5 py-3.5 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
                     <Gem size={20} className="text-yellow-500 shrink-0" fill="currentColor" />
                     <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">
@@ -287,7 +348,6 @@ const MarketplacePage = () => {
                 </p>
             </main>
 
-            {/* Payment modal */}
             {selectedPkg && (
                 <PaymentModal pkg={selectedPkg} onClose={() => setSelectedPkg(null)} />
             )}
