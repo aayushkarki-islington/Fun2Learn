@@ -3,13 +3,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import logging
 import uuid
-from datetime import date
+import random
+from datetime import date, datetime, timedelta, timezone
 
-from app.models.request_models import SignUpRequest, SignInRequest
+from app.models.request_models import SignUpRequest, SignInRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.models.response_models import SignUpResponse, SignInResponse, ErrorResponse
-from app.models.db_models import User, UserInventory
+from app.models.db_models import User, UserInventory, ForgotPasswordRequests
 from app.utils.auth_utils import hash_password, verify_password, create_access_token
 from app.utils.db_utils import get_db
+from app.utils.email_utils import send_forgot_password_email
 
 _SHOW_NAME = "auth"
 router = APIRouter(
@@ -169,4 +171,114 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred during login"
+        )
+
+@router.post("/forgot-password")
+async def process_forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Send a password-reset OTP to the given email address.
+    Always returns 200 to avoid leaking whether the email exists.
+    """
+    try:
+        user = db.query(User).filter(User.email == request.email).first()
+
+        if not user:
+            logger.warning(f"Forgot-password: no account for email {request.email}")
+            # Return generic response to avoid email enumeration
+            return {"status": "success", "message": "If that email is registered, a reset code has been sent."}
+
+        # Invalidate all previous pending requests for this email
+        db.query(ForgotPasswordRequests).filter(
+            ForgotPasswordRequests.user_email == request.email,
+            ForgotPasswordRequests.status == "pending"
+        ).update({"status": "invalidated"})
+
+        verification_code = str(random.randint(100000, 999999))
+        now = datetime.now(timezone.utc)
+        expires_at = now + timedelta(minutes=15)
+
+        forgot_request = ForgotPasswordRequests(
+            request_id=str(uuid.uuid4()),
+            user_email=request.email,
+            verification_code=verification_code,
+            expires_at=expires_at,
+            status="pending"
+        )
+        db.add(forgot_request)
+        db.commit()
+
+        await send_forgot_password_email(
+            recipient_email=request.email,
+            full_name=user.full_name,
+            verification_code=verification_code
+        )
+
+        logger.info(f"Password reset OTP sent to {request.email}")
+        return {"status": "success", "message": "If that email is registered, a reset code has been sent."}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error in forgot-password for {request.email}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while processing request"
+        )
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify the OTP code and update the user's password.
+    Marks the reset request as 'processed' on success.
+    """
+    try:
+        now = datetime.now(timezone.utc)
+
+        reset_request = (
+            db.query(ForgotPasswordRequests)
+            .filter(
+                ForgotPasswordRequests.user_email == request.email,
+                ForgotPasswordRequests.verification_code == request.verification_code,
+                ForgotPasswordRequests.status == "pending",
+                ForgotPasswordRequests.expires_at > now
+            )
+            .first()
+        )
+
+        if not reset_request:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired verification code"
+            )
+
+        user = db.query(User).filter(User.email == request.email).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired verification code"
+            )
+
+        user.password = hash_password(request.new_password)
+        reset_request.status = "processed"
+        db.commit()
+
+        logger.info(f"Password reset successfully for {request.email}")
+        return {"status": "success", "message": "Password has been reset successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error in reset-password for {request.email}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while processing request"
         )

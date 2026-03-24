@@ -23,6 +23,8 @@ NON_GATED_ROUTES = [
     "/api/auth/signup",
     "/api/payment/success",
     "/api/payment/failure",
+    "/api/auth/forgot-password",
+    "/api/auth/reset-password"
 ]
 
 def run_leaderboard_reset():

@@ -23,6 +23,15 @@ class User(Base):
     daily_quest_progress = relationship("UserDailyQuestProgress", back_populates="user", cascade="all, delete-orphan")
     leaderboard_entries = relationship("LeaderboardEntry", back_populates="user", cascade="all, delete-orphan")
 
+class ForgotPasswordRequests(Base):
+    __tablename__ = "forgot_password_requests"
+    request_id = Column(String(40), primary_key=True)
+    user_email = Column(String(255), nullable=False)
+    verification_code = Column(String(255), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
+    status = Column(String(40), nullable=False)
+
 class Course(Base):
     __tablename__ = "courses"
 

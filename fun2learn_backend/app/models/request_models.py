@@ -123,3 +123,11 @@ class CompleteLessonRequest(BaseModel):
 
 class InitiatePaymentRequest(BaseModel):
     package_id: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    verification_code: str
+    new_password: str
