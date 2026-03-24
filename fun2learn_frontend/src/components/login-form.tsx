@@ -35,13 +35,18 @@ export const LoginForm = ({
                 </div>
 
                 <div className="flex flex-col mb-2">
-                    <label className="mb-2">Password</label>
-                    <input 
-                        type="password" 
+                    <div className="flex justify-between items-center mb-2">
+                        <label>Password</label>
+                        <Link href="/forgot-password" className="text-sm text-(--primary) hover:underline">
+                            Forgot password?
+                        </Link>
+                    </div>
+                    <input
+                        type="password"
                         className="h-12 rounded-md border border-gray-400 dark:border-gray-200 px-2"
-                        value={password} 
-                        name="password" 
-                        placeholder="Enter your password" 
+                        value={password}
+                        name="password"
+                        placeholder="Enter your password"
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>

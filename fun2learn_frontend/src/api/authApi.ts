@@ -1,6 +1,6 @@
 import config from "@/config";
 import { getHeaders } from "./apiUtils";
-import { LoginRequest, SignUpRequest } from "@/models/requestModels";
+import { LoginRequest, SignUpRequest, ForgotPasswordRequest, ResetPasswordRequest } from "@/models/requestModels";
 import { LoginResponse, SignUpResponse } from "@/models/responseModels";
 import Cookies from "js-cookie";
 import { User } from "@/models/types";
@@ -118,6 +118,50 @@ export const signup = async (payload: SignUpRequest) => {
         return {
             success: false,
             errorMessage
+        };
+    }
+};
+
+export const forgotPassword = async (payload: ForgotPasswordRequest) => {
+    try {
+        const response = await fetch(`${API_URL}/auth/forgot-password`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ email: payload.email })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.detail || "Failed to send reset code");
+        }
+
+        return { success: true };
+    } catch (e) {
+        return {
+            success: false,
+            errorMessage: e instanceof Error ? e.message : "Failed to send reset code"
+        };
+    }
+};
+
+export const resetPassword = async (payload: ResetPasswordRequest) => {
+    try {
+        const response = await fetch(`${API_URL}/auth/reset-password`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.detail || "Failed to reset password");
+        }
+
+        return { success: true };
+    } catch (e) {
+        return {
+            success: false,
+            errorMessage: e instanceof Error ? e.message : "Failed to reset password"
         };
     }
 };

@@ -18,7 +18,8 @@ const NON_GATED_PATHS: string[] = []
 // Paths that only show when the user is not logged in. If logged in, redirect to different page
 const NO_AUTH_ONLY_PATHS = [
     "/login",
-    "/signup"
+    "/signup",
+    "/forgot-password"
 ]
 
 const STATIC_PATHS = [

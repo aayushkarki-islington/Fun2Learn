@@ -11,3 +11,13 @@ export interface SignUpRequest {
     gender: string;
     role: 'learner' | 'tutor';
 }
+
+export interface ForgotPasswordRequest {
+    email: string;
+}
+
+export interface ResetPasswordRequest {
+    email: string;
+    verification_code: string;
+    new_password: string;
+}
