@@ -2,5 +2,6 @@
 venv/
 pyvenv/
 **/__pycache__/
+**/.pytest_cache
 .vscode/
 .env
