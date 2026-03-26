@@ -1,7 +1,7 @@
 import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fun-2-learn")
@@ -23,7 +23,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(payload: dict) -> str:
     to_encode = payload.copy()
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     to_encode.update({
         "iat": now,
