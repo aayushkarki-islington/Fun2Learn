@@ -9,7 +9,7 @@ import type {
     UploadLessonAttachmentResponse, GetLessonAttachmentsResponse,
     DeleteLessonAttachmentResponse,
     GetTagsResponse, SaveCourseTagsResponse, GetCourseTagsResponse,
-    CreateBadgeResponse, GetCourseBadgeResponse
+    CreateBadgeResponse, GetCourseBadgeResponse, SetCoursePriceResponse, SetCourseDiscountResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -726,5 +726,51 @@ export const createBadgeImage = async (courseId: string, name: string, file: Fil
         return { success: false, errorMessage: data.message };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to create badge" };
+    }
+};
+
+export const setCoursePrice = async (courseId: string, priceGems: number | null) => {
+    try {
+        const response = await fetch(`${API_URL}/course/set_price`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ course_id: courseId, price_gems: priceGems })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to set course price");
+        }
+
+        const data = await response.json() as SetCoursePriceResponse;
+        if (data.status === "success") {
+            return { success: true, priceGems: data.price_gems };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to set course price" };
+    }
+};
+
+export const setCourseDiscount = async (courseId: string, discountPercent: number | null) => {
+    try {
+        const response = await fetch(`${API_URL}/course/set_discount`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ course_id: courseId, discount_percent: discountPercent })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to set discount");
+        }
+
+        const data = await response.json() as SetCourseDiscountResponse;
+        if (data.status === "success") {
+            return { success: true, discountPercent: data.discount_percent, effectivePriceGems: data.effective_price_gems };
+        }
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to set discount" };
     }
 };

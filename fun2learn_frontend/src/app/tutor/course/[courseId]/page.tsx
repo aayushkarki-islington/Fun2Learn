@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Loader2, Plus, BookOpen, Send } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, BookOpen, Send, Settings } from "lucide-react";
 import { toast } from "sonner";
 import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
@@ -275,11 +275,18 @@ const CourseEditorPage = () => {
                             }`}>
                                 {course.status === "published" ? "Published" : "Draft"}
                             </span>
-                            {course.status === "draft" && (
+                            {course.status === "draft" ? (
                                 <Button
                                     onClick={handlePublish}
                                 >
                                     <span className="flex items-center gap-1"><Send size={16} /> Publish Course</span>
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="secondary"
+                                    onClick={handlePublish}
+                                >
+                                    <span className="flex items-center gap-1"><Settings size={16} /> Edit Settings</span>
                                 </Button>
                             )}
                         </div>

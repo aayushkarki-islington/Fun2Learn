@@ -20,7 +20,8 @@ import {
     Flame,
     Gem,
     Medal,
-    ShoppingBag
+    ShoppingBag,
+    Coins
 } from "lucide-react";
 import ThemeToggle from "./themeToggle";
 
@@ -88,6 +89,12 @@ const tutorNavItems: NavItem[] = [
         icon: <BarChart3 size={24} />,
         href: "/tutor/analytics",
         matchPaths: ["/tutor/analytics"],
+    },
+    {
+        label: "Redeem",
+        icon: <Coins size={24} />,
+        href: "/tutor/redeem",
+        matchPaths: ["/tutor/redeem"],
     },
 ];
 

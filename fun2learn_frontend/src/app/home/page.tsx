@@ -16,7 +16,9 @@ const HomePage = () => {
             return;
         }
 
-        if (user.role === "tutor") {
+        if (user.role === "admin") {
+            router.replace("/admin/dashboard");
+        } else if (user.role === "tutor") {
             router.replace("/tutor/dashboard");
         } else {
             router.replace("/student/mycourses");

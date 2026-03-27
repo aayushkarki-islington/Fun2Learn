@@ -21,3 +21,18 @@ export interface ResetPasswordRequest {
     verification_code: string;
     new_password: string;
 }
+
+export interface SetCoursePriceRequest {
+    course_id: string;
+    price_gems?: number | null;
+}
+
+export interface CreateRedeemRequestRequest {
+    gems: number;
+}
+
+export interface UpdateRedeemStatusRequest {
+    request_id: string;
+    status: 'paid' | 'rejected';
+    notes?: string;
+}

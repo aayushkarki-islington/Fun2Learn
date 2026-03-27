@@ -2,7 +2,7 @@
 
 import type { BrowseCourseSummary } from "@/models/types";
 import Button from "@/components/ui/button";
-import { GraduationCap, Users } from "lucide-react";
+import { GraduationCap, Users, Gem } from "lucide-react";
 
 interface BrowseCourseCardProps {
     course: BrowseCourseSummary;
@@ -57,6 +57,38 @@ const BrowseCourseCard = ({ course, onEnroll, isEnrolling = false, isEnrolled = 
                     </div>
                 )}
 
+                {/* Price badge */}
+                <div className="mb-3 flex items-center gap-2 flex-wrap">
+                    {course.price_gems ? (() => {
+                        const hasDiscount = course.discount_percent && course.discount_percent > 0;
+                        const effectivePrice = hasDiscount
+                            ? Math.round(course.price_gems * (1 - course.discount_percent! / 100))
+                            : course.price_gems;
+                        return (
+                            <>
+                                {hasDiscount && (
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                                        -{course.discount_percent}%
+                                    </span>
+                                )}
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                                    <Gem size={12} fill="currentColor" />
+                                    {effectivePrice.toLocaleString()} gems
+                                    {hasDiscount && (
+                                        <span className="line-through text-yellow-400 dark:text-yellow-600 ml-1">
+                                            {course.price_gems.toLocaleString()}
+                                        </span>
+                                    )}
+                                </span>
+                            </>
+                        );
+                    })() : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                            Free
+                        </span>
+                    )}
+                </div>
+
                 {/* Enrollment count & action */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
@@ -75,7 +107,11 @@ const BrowseCourseCard = ({ course, onEnroll, isEnrolling = false, isEnrolled = 
                             isLoading={isEnrolling}
                             loadingText="Enrolling..."
                         >
-                            Enroll
+                            {course.price_gems ? (
+                                <span className="flex items-center gap-1">
+                                    <Gem size={13} fill="currentColor" /> Enroll
+                                </span>
+                            ) : "Enroll Free"}
                         </Button>
                     )}
                 </div>

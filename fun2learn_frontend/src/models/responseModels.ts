@@ -2,7 +2,8 @@ import type {
     CourseSummary, CourseDetail, LessonAttachment, Tag, Badge,
     BrowseCourseSummary, EnrolledCourseSummary, StudentCourseDetail,
     StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement,
-    DailyQuest, CompletedQuestInfo, LeaderboardMember, LeaderboardData
+    DailyQuest, CompletedQuestInfo, LeaderboardMember, LeaderboardData,
+    RedeemRequest, AdminStats
 } from './types';
 
 export interface InitiatePaymentResponse {
@@ -246,4 +247,62 @@ export interface GetLeaderboardResponse {
     promotion_zone: number;
     relegation_zone: number;
     total_members: number;
+}
+
+// ─── Tutor Monetization response models ─────────────────
+
+export interface SetCoursePriceResponse {
+    status: string;
+    message: string;
+    course_id: string;
+    price_gems?: number | null;
+}
+
+export interface SetCourseDiscountResponse {
+    status: string;
+    message: string;
+    course_id: string;
+    discount_percent?: number | null;
+    effective_price_gems?: number | null;
+}
+
+export interface TutorInventoryResponse {
+    status: string;
+    message: string;
+    gems: number;
+    gems_value_rs: number;
+}
+
+export interface CreateRedeemRequestResponse {
+    status: string;
+    message: string;
+    request_id: string;
+}
+
+export interface GetTutorRedeemRequestsResponse {
+    status: string;
+    message: string;
+    requests: RedeemRequest[];
+    current_gems: number;
+}
+
+export interface GetAdminRedeemRequestsResponse {
+    status: string;
+    message: string;
+    requests: RedeemRequest[];
+}
+
+export interface UpdateRedeemStatusResponse {
+    status: string;
+    message: string;
+    request_id: string;
+}
+
+export interface AdminStatsResponse {
+    status: string;
+    message: string;
+    total_users: number;
+    total_courses: number;
+    total_enrollments: number;
+    pending_redeem_requests: number;
 }

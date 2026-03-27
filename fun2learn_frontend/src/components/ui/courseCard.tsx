@@ -3,7 +3,7 @@
 import { CourseSummary } from "@/models/types";
 import { useRouter } from "next/navigation";
 import Button from "./button";
-import { GraduationCap, Trash2, Settings } from "lucide-react";
+import { GraduationCap, Trash2, Settings, Gem } from "lucide-react";
 
 interface CourseCardProps {
     course: CourseSummary;
@@ -77,6 +77,38 @@ const CourseCard = ({ course, onDelete }: CourseCardProps) => {
                         <div className="font-bold text-orange-600 dark:text-orange-400">{course.question_count}</div>
                         <div className="text-xs text-gray-600 dark:text-gray-400">Questions</div>
                     </div>
+                </div>
+
+                {/* Price badge */}
+                <div className="mb-3 flex items-center gap-2 flex-wrap">
+                    {course.price_gems ? (() => {
+                        const hasDiscount = course.discount_percent && course.discount_percent > 0;
+                        const effectivePrice = hasDiscount
+                            ? Math.round(course.price_gems * (1 - course.discount_percent! / 100))
+                            : course.price_gems;
+                        return (
+                            <>
+                                {hasDiscount && (
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                                        -{course.discount_percent}% OFF
+                                    </span>
+                                )}
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                                    <Gem size={12} fill="currentColor" />
+                                    {effectivePrice.toLocaleString()} gems
+                                    {hasDiscount && (
+                                        <span className="line-through text-yellow-400 dark:text-yellow-600 ml-1">
+                                            {course.price_gems.toLocaleString()}
+                                        </span>
+                                    )}
+                                </span>
+                            </>
+                        );
+                    })() : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                            Free
+                        </span>
+                    )}
                 </div>
 
                 {/* Action Buttons */}

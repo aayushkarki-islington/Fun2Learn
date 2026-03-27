@@ -28,6 +28,8 @@ export interface CourseSummary {
     chapter_count: number;
     lesson_count: number;
     question_count: number;
+    price_gems?: number | null;
+    discount_percent?: number | null;
 }
 
 export interface LessonDetail {
@@ -62,6 +64,8 @@ export interface CourseDetail {
     status: CourseStatus;
     created_at: string;
     units: UnitDetail[];
+    price_gems?: number | null;
+    discount_percent?: number | null;
 }
 
 export type QuestionType = 'mcq' | 'text'
@@ -125,6 +129,29 @@ export interface BrowseCourseSummary {
     enrollment_count: number;
     tags: Tag[];
     badge: Badge | null;
+    price_gems?: number | null;
+    discount_percent?: number | null;
+}
+
+export type RedeemRequestStatus = 'pending' | 'paid' | 'rejected';
+
+export interface RedeemRequest {
+    id: string;
+    tutor_id: string;
+    tutor_name: string;
+    gems_requested: number;
+    amount_rs: number;
+    status: RedeemRequestStatus;
+    notes?: string | null;
+    created_at: string;
+    processed_at?: string | null;
+}
+
+export interface AdminStats {
+    total_users: number;
+    total_courses: number;
+    total_enrollments: number;
+    pending_redeem_requests: number;
 }
 
 export interface EnrolledCourseSummary {

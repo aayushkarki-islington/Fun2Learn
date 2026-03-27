@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { BrowseCourseSummary } from "@/models/types";
-import { getBrowseCourses, enrollInCourse, getMyEnrolledCourses } from "@/api/studentApi";
+import { getBrowseCourses, enrollInCourse, getMyEnrolledCourses, getStreak } from "@/api/studentApi";
 import Sidebar from "@/components/ui/sidebar";
 import BrowseCourseCard from "@/components/student/browseCourseCard";
 import Button from "@/components/ui/button";
-import { Search, BookOpen } from "lucide-react";
+import Modal from "@/components/ui/modal";
+import { Search, Gem } from "lucide-react";
 import { useUser } from "@/context/user-context";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +19,8 @@ const BrowsePage = () => {
     const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [enrollingId, setEnrollingId] = useState<string | null>(null);
+    const [pendingEnrollCourse, setPendingEnrollCourse] = useState<BrowseCourseSummary | null>(null);
+    const [studentGems, setStudentGems] = useState<number>(0);
 
     useEffect(() => {
         loadData();
@@ -45,6 +48,20 @@ const BrowsePage = () => {
     };
 
     const handleEnroll = async (courseId: string) => {
+        const course = courses.find(c => c.id === courseId);
+        if (!course) return;
+
+        if (course.price_gems && course.price_gems > 0) {
+            const streakResult = await getStreak();
+            if (streakResult.success) setStudentGems(streakResult.gems ?? 0);
+            setPendingEnrollCourse(course);
+            return;
+        }
+
+        await doEnroll(courseId);
+    };
+
+    const doEnroll = async (courseId: string) => {
         setEnrollingId(courseId);
         const result = await enrollInCourse(courseId);
 
@@ -57,6 +74,13 @@ const BrowsePage = () => {
         }
 
         setEnrollingId(null);
+    };
+
+    const handleConfirmEnroll = async () => {
+        if (!pendingEnrollCourse) return;
+        const courseId = pendingEnrollCourse.id;
+        setPendingEnrollCourse(null);
+        await doEnroll(courseId);
     };
 
     return (
@@ -115,6 +139,89 @@ const BrowsePage = () => {
                     </div>
                 )}
             </main>
+
+            {/* Enrollment confirmation modal for paid courses */}
+            {pendingEnrollCourse && (() => {
+                const hasDiscount = pendingEnrollCourse.discount_percent && pendingEnrollCourse.discount_percent > 0;
+                const effectivePrice = hasDiscount
+                    ? Math.round(pendingEnrollCourse.price_gems! * (1 - pendingEnrollCourse.discount_percent! / 100))
+                    : pendingEnrollCourse.price_gems!;
+                const canAfford = studentGems >= effectivePrice;
+                return (
+                    <Modal
+                        isOpen={true}
+                        onClose={() => setPendingEnrollCourse(null)}
+                        title="Confirm Enrollment"
+                    >
+                        <div className="space-y-4">
+                            <p className="text-gray-700 dark:text-gray-200 font-semibold text-lg">
+                                {pendingEnrollCourse.name}
+                            </p>
+
+                            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 space-y-2">
+                                {hasDiscount && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Original price</span>
+                                        <span className="line-through text-gray-400 flex items-center gap-1">
+                                            <Gem size={12} fill="currentColor" />
+                                            {pendingEnrollCourse.price_gems!.toLocaleString()}
+                                        </span>
+                                    </div>
+                                )}
+                                {hasDiscount && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Discount</span>
+                                        <span className="text-red-500 font-semibold">-{pendingEnrollCourse.discount_percent}%</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between font-bold text-base border-t border-yellow-200 dark:border-yellow-800 pt-2">
+                                    <span className="text-gray-700 dark:text-gray-200">You pay</span>
+                                    <span className="text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                                        <Gem size={14} fill="currentColor" />
+                                        {effectivePrice.toLocaleString()} gems
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className={`rounded-xl p-3 flex justify-between items-center text-sm ${canAfford ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                                <span className="text-gray-600 dark:text-gray-400">Your balance</span>
+                                <span className={`font-semibold flex items-center gap-1 ${canAfford ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                                    <Gem size={13} fill="currentColor" />
+                                    {studentGems.toLocaleString()} gems
+                                </span>
+                            </div>
+
+                            {!canAfford && (
+                                <p className="text-sm text-red-500 text-center">
+                                    You don't have enough gems to enroll in this course.
+                                </p>
+                            )}
+
+                            <div className="flex gap-3 pt-2">
+                                <Button
+                                    variant="secondary"
+                                    size="md"
+                                    className="flex-1"
+                                    onClick={() => setPendingEnrollCourse(null)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    size="md"
+                                    className="flex-1"
+                                    onClick={handleConfirmEnroll}
+                                    disabled={!canAfford}
+                                    isLoading={enrollingId === pendingEnrollCourse.id}
+                                    loadingText="Enrolling..."
+                                >
+                                    Confirm Enrollment
+                                </Button>
+                            </div>
+                        </div>
+                    </Modal>
+                );
+            })()}
         </div>
     );
 };
