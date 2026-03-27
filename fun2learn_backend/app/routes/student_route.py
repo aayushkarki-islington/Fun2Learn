@@ -353,7 +353,9 @@ async def browse_courses(
                 lesson_count=lesson_count,
                 enrollment_count=enrollment_count,
                 tags=tags,
-                badge=badge_detail
+                badge=badge_detail,
+                price_gems=course.price_gems,
+                discount_percent=course.discount_percent
             ))
 
         return GetBrowseCoursesResponse(
@@ -392,6 +394,37 @@ async def enroll_in_course(
         ).scalar_one_or_none()
         if existing:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already enrolled in this course")
+
+        # Handle gem payment for paid courses
+        if course.price_gems and course.price_gems > 0:
+            # Apply discount if set
+            if course.discount_percent and 1 <= course.discount_percent <= 99:
+                effective_price = int(course.price_gems * (1 - course.discount_percent / 100))
+            else:
+                effective_price = course.price_gems
+
+            student_inventory = _get_or_create_inventory(user_id, db)
+            if student_inventory.gems < effective_price:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Insufficient gems. You need {effective_price} gems to enroll."
+                )
+            # Deduct gems from student
+            student_inventory.gems -= effective_price
+
+            # Credit 90% to tutor (app takes 10% commission)
+            tutor_gems_earned = int(effective_price * 0.9)
+            tutor_inventory = db.execute(
+                select(UserInventory).where(UserInventory.user_id == course.created_by)
+            ).scalar_one_or_none()
+            if not tutor_inventory:
+                tutor_inventory = UserInventory(
+                    id=str(uuid.uuid4()),
+                    user_id=course.created_by
+                )
+                db.add(tutor_inventory)
+                db.flush()
+            tutor_inventory.gems += tutor_gems_earned
 
         # Create enrollment
         enrollment_id = str(uuid.uuid4())

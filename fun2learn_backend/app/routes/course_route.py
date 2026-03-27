@@ -12,7 +12,7 @@ from app.models.request_models import (
     EditLessonRequest, DeleteLessonRequest,
     EditMCQQuestionRequest, EditTextQuestionRequest, DeleteQuestionRequest,
     PublishCourseRequest, DeleteLessonAttachmentRequest,
-    SaveCourseTagsRequest, CreateBadgeIconRequest
+    SaveCourseTagsRequest, CreateBadgeIconRequest, SetCoursePriceRequest, SetCourseDiscountRequest
 )
 from app.models.response_models import (
     CourseCreationResponse, AddUnitResponse, AddChapterResponse, AddLessonResponse,
@@ -27,7 +27,7 @@ from app.models.response_models import (
     UploadLessonAttachmentResponse, GetLessonAttachmentsResponse, DeleteLessonAttachmentResponse,
     LessonAttachmentDetail, GetLessonQuestionsResponse, QuestionDetail, MCQOptionDetail, TextAnswerDetail,
     GetTagsResponse, TagDetail, SaveCourseTagsResponse, GetCourseTagsResponse,
-    CreateBadgeResponse, BadgeDetail, GetCourseBadgeResponse
+    CreateBadgeResponse, BadgeDetail, GetCourseBadgeResponse, SetCoursePriceResponse, SetCourseDiscountResponse
 )
 import logging
 from sqlalchemy import select, func, desc
@@ -137,7 +137,9 @@ async def get_courses(
                 unit_count=unit_count,
                 chapter_count=chapter_count,
                 lesson_count=lesson_count,
-                question_count=question_count
+                question_count=question_count,
+                price_gems=course.price_gems,
+                discount_percent=course.discount_percent
             ))
 
         return GetCoursesResponse(
@@ -209,7 +211,9 @@ async def get_course_detail(
             description=course.description,
             status=course.status,
             created_at=course.created_at,
-            units=units
+            units=units,
+            price_gems=course.price_gems,
+            discount_percent=course.discount_percent
         )
 
         return GetCourseDetailResponse(
@@ -722,6 +726,91 @@ async def publish_course(
     except Exception as e:
         logger.exception(f"An error occurred while publishing course: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal Server Error")
+
+@router.post("/set_price")
+async def set_course_price(
+    request: SetCoursePriceRequest,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Set or clear the gem price for a course.
+    price_gems=None makes the course free; a positive integer sets a paid price.
+    """
+    try:
+        course_stmt = select(Course).where(Course.id == request.course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        if request.price_gems is not None and request.price_gems <= 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="price_gems must be a positive integer")
+
+        course.price_gems = request.price_gems
+        db.commit()
+
+        return SetCoursePriceResponse(
+            status="success",
+            message="Course price updated successfully",
+            course_id=course.id,
+            price_gems=course.price_gems
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while setting course price: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.post("/set_discount")
+async def set_course_discount(
+    request: SetCourseDiscountRequest,
+    current_user: TokenUser = Depends(require_role("tutor", "admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Set or remove a percentage discount on a course.
+    discount_percent=None removes the discount; 1-99 applies that % off price_gems.
+    Course must be paid (price_gems set) to apply a discount.
+    """
+    try:
+        course_stmt = select(Course).where(Course.id == request.course_id)
+        course = db.execute(course_stmt).scalar_one_or_none()
+
+        if course is None:
+            raise NotFoundException("Course")
+        if course.created_by != current_user.user_id:
+            raise UnauthorizedUserException()
+
+        if request.discount_percent is not None:
+            if not (1 <= request.discount_percent <= 99):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="discount_percent must be between 1 and 99")
+            if not course.price_gems:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot set a discount on a free course. Set a price first.")
+
+        course.discount_percent = request.discount_percent
+        db.commit()
+
+        effective_price = None
+        if course.price_gems and course.discount_percent:
+            effective_price = int(course.price_gems * (1 - course.discount_percent / 100))
+
+        return SetCourseDiscountResponse(
+            status="success",
+            message="Discount updated successfully" if request.discount_percent else "Discount removed successfully",
+            course_id=course.id,
+            discount_percent=course.discount_percent,
+            effective_price_gems=effective_price
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"An error occurred while setting course discount: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
 
 @router.put("/edit_unit")
 async def edit_unit(

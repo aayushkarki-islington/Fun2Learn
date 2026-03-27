@@ -41,6 +41,8 @@ class Course(Base):
     created_by = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     status = Column(String(20), nullable=False)
+    price_gems = Column(Integer, nullable=True)
+    discount_percent = Column(Integer, nullable=True)
     user = relationship("User", back_populates="courses")
     units = relationship("Unit", back_populates="course", cascade="all, delete-orphan")
     course_tags = relationship("CourseTag", back_populates="course", cascade="all, delete-orphan")
@@ -284,3 +286,19 @@ class GemPurchaseOrder(Base):
     # "pending" | "completed" | "failed"
     status = Column(String(20), nullable=False, server_default="pending")
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+
+
+class TutorRedeemRequest(Base):
+    __tablename__ = "tutor_redeem_requests"
+
+    id = Column(String(40), primary_key=True)
+    tutor_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    gems_requested = Column(Integer, nullable=False)
+    # amount_rs = gems_requested * 0.8
+    amount_rs = Column(Integer, nullable=False)
+    # "pending" | "paid" | "rejected"
+    status = Column(String(20), nullable=False, server_default="pending")
+    notes = Column(Text, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    processed_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    tutor = relationship("User")

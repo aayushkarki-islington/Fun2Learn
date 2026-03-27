@@ -71,8 +71,8 @@ async def signup(
 
         db.add(new_user)
 
-        # Create inventory for learner users
-        if request.role == "learner":
+        # Create inventory for learners and tutors
+        if request.role in ("learner", "tutor"):
             inventory = UserInventory(
                 id=str(uuid.uuid4()),
                 user_id=user_id

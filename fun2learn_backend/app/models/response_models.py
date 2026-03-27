@@ -148,6 +148,8 @@ class CourseDetail(BaseModel):
     status: str
     created_at: datetime
     units: List[UnitDetail]
+    price_gems: Optional[int] = None
+    discount_percent: Optional[int] = None
 
 class CourseSummary(BaseModel):
     id: str
@@ -159,6 +161,8 @@ class CourseSummary(BaseModel):
     chapter_count: int
     lesson_count: int
     question_count: int
+    price_gems: Optional[int] = None
+    discount_percent: Optional[int] = None
 
 class GetCoursesResponse(BaseModel):
     status: str
@@ -262,6 +266,8 @@ class BrowseCourseSummary(BaseModel):
     enrollment_count: int
     tags: List[TagDetail]
     badge: Optional[BadgeDetail] = None
+    price_gems: Optional[int] = None
+    discount_percent: Optional[int] = None
 
 class GetBrowseCoursesResponse(BaseModel):
     status: str
@@ -463,3 +469,65 @@ class InitiatePaymentResponse(BaseModel):
     signed_field_names: str
     signature: str
     epay_url: str
+
+
+# ─── Tutor Monetization response models ─────────────────
+
+class SetCoursePriceResponse(BaseModel):
+    status: str
+    message: str
+    course_id: str
+    price_gems: Optional[int] = None
+
+class SetCourseDiscountResponse(BaseModel):
+    status: str
+    message: str
+    course_id: str
+    discount_percent: Optional[int] = None
+    effective_price_gems: Optional[int] = None
+
+class TutorInventoryResponse(BaseModel):
+    status: str
+    message: str
+    gems: int
+    gems_value_rs: float  # gems * 0.8
+
+class RedeemRequestDetail(BaseModel):
+    id: str
+    tutor_id: str
+    tutor_name: str
+    gems_requested: int
+    amount_rs: float
+    status: str
+    notes: Optional[str] = None
+    created_at: datetime
+    processed_at: Optional[datetime] = None
+
+class CreateRedeemRequestResponse(BaseModel):
+    status: str
+    message: str
+    request_id: str
+
+class GetTutorRedeemRequestsResponse(BaseModel):
+    status: str
+    message: str
+    requests: List[RedeemRequestDetail]
+    current_gems: int
+
+class GetAdminRedeemRequestsResponse(BaseModel):
+    status: str
+    message: str
+    requests: List[RedeemRequestDetail]
+
+class UpdateRedeemStatusResponse(BaseModel):
+    status: str
+    message: str
+    request_id: str
+
+class AdminStatsResponse(BaseModel):
+    status: str
+    message: str
+    total_users: int
+    total_courses: int
+    total_enrollments: int
+    pending_redeem_requests: int

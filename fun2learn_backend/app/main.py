@@ -15,7 +15,9 @@ from app.routes import (
     course_route,
     user_route,
     student_route,
-    payment_route
+    payment_route,
+    tutor_route,
+    admin_route
 )
 
 NON_GATED_ROUTES = [
@@ -156,6 +158,8 @@ def get_application():
     _app.include_router(user_route.router, prefix="/api")
     _app.include_router(student_route.router, prefix="/api")
     _app.include_router(payment_route.router, prefix="/api")
+    _app.include_router(tutor_route.router, prefix="/api")
+    _app.include_router(admin_route.router, prefix="/api")
     return _app
 
 app = get_application()

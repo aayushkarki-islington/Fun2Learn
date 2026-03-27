@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
-from typing import Literal, List
+from typing import Literal, List, Optional
 
 class SignUpRequest(BaseModel):
     email: str
@@ -131,3 +131,22 @@ class ResetPasswordRequest(BaseModel):
     email: str
     verification_code: str
     new_password: str
+
+class SetCoursePriceRequest(BaseModel):
+    course_id: str
+    # price_gems: None = free; positive int = gems students pay to enroll
+    price_gems: Optional[int] = None
+
+class SetCourseDiscountRequest(BaseModel):
+    course_id: str
+    # discount_percent: None = remove discount; 1-99 = percentage off
+    discount_percent: Optional[int] = None
+
+class CreateRedeemRequestRequest(BaseModel):
+    gems: int
+
+class UpdateRedeemStatusRequest(BaseModel):
+    request_id: str
+    # "pending" | "paid" | "rejected"
+    status: str
+    notes: Optional[str] = None
