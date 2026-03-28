@@ -302,3 +302,20 @@ class TutorRedeemRequest(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     processed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     tutor = relationship("User")
+
+
+class Feedback(Base):
+    __tablename__ = "feedback"
+
+    id = Column(String(40), primary_key=True)
+    user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    rating = Column(Integer, nullable=False)  # 1–5
+    comment = Column(Text, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    user = relationship("User")
+    course = relationship("Course")
+    __table_args__ = (
+        UniqueConstraint("user_id", "course_id", name="uq_feedback_user_course"),
+    )

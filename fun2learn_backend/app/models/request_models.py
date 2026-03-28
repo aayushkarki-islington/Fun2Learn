@@ -150,3 +150,7 @@ class UpdateRedeemStatusRequest(BaseModel):
     # "pending" | "paid" | "rejected"
     status: str
     notes: Optional[str] = None
+
+class SubmitFeedbackRequest(BaseModel):
+    rating: int  # 1–5
+    comment: Optional[str] = None

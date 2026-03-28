@@ -3,9 +3,11 @@ from app.utils.db_utils import get_db
 from app.auth.dependencies import get_current_user, require_role
 from sqlalchemy.orm import Session
 from app.models.models import TokenUser
-from app.models.request_models import EnrollCourseRequest, SubmitAnswerRequest, CompleteLessonRequest
+from app.models.request_models import EnrollCourseRequest, SubmitAnswerRequest, CompleteLessonRequest, SubmitFeedbackRequest
 from app.models.response_models import (
     GetBrowseCoursesResponse, BrowseCourseSummary,
+    GetCoursePublicDetailResponse, CourseFeedbackItem, GetCourseFeedbackResponse,
+    SubmitFeedbackResponse, MyFeedbackResponse,
     EnrollCourseResponse,
     GetMyCoursesResponse, EnrolledCourseSummary,
     GetStudentCourseDetailResponse, StudentCourseDetail, StudentUnitDetail, StudentChapterDetail, StudentLessonDetail,
@@ -23,7 +25,7 @@ from app.models.db_models import (
     Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer,
     LessonAttachment, Enrollment, CourseProgress, LessonCompletion, Tag, CourseTag,
     UserInventory, StreakEntry, Achievement, UserAchievement, UserDailyQuestProgress,
-    Leaderboard, LeaderboardEntry
+    Leaderboard, LeaderboardEntry, Feedback
 )
 from app.utils.leaderboard_utils import RANKS, LEADERBOARD_MAX_SIZE, PROMOTION_COUNT, RELEGATION_COUNT, get_current_week_bounds
 from app.utils.exceptions import NotFoundException
@@ -326,6 +328,16 @@ async def browse_courses(
         courses_stmt = select(Course).where(Course.status == "published").order_by(Course.created_at.desc())
         courses = db.execute(courses_stmt).scalars().all()
 
+        # Batch-fetch feedback stats for all courses
+        feedback_stats_rows = db.execute(
+            select(
+                Feedback.course_id,
+                func.avg(Feedback.rating).label("avg_rating"),
+                func.count(Feedback.id).label("review_count")
+            ).group_by(Feedback.course_id)
+        ).all()
+        feedback_stats = {row.course_id: row for row in feedback_stats_rows}
+
         course_list = []
         for course in courses:
             unit_count = len(course.units)
@@ -343,6 +355,10 @@ async def browse_courses(
                     image_url=course.badge.image_url, course_id=course.badge.course_id
                 )
 
+            stats = feedback_stats.get(course.id)
+            avg_rating = round(float(stats.avg_rating), 1) if stats else None
+            review_count = stats.review_count if stats else 0
+
             course_list.append(BrowseCourseSummary(
                 id=course.id,
                 name=course.name,
@@ -355,7 +371,9 @@ async def browse_courses(
                 tags=tags,
                 badge=badge_detail,
                 price_gems=course.price_gems,
-                discount_percent=course.discount_percent
+                discount_percent=course.discount_percent,
+                avg_rating=avg_rating,
+                review_count=review_count
             ))
 
         return GetBrowseCoursesResponse(
@@ -1199,4 +1217,182 @@ async def get_leaderboard(
         raise
     except Exception as e:
         logger.exception(f"Error getting leaderboard: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+def _build_browse_summary(course: Course, db: Session) -> BrowseCourseSummary:
+    """Build a BrowseCourseSummary for a single course including feedback stats."""
+    unit_count = len(course.units)
+    chapter_count = sum(len(u.chapters) for u in course.units)
+    lesson_count = _count_lessons(course)
+    enrollment_count = len(course.enrollments)
+    tags = [TagDetail(id=ct.tag.id, name=ct.tag.name) for ct in course.course_tags]
+
+    badge_detail = None
+    if course.badge:
+        badge_detail = BadgeDetail(
+            id=course.badge.id, name=course.badge.name,
+            badge_type=course.badge.badge_type, icon_name=course.badge.icon_name,
+            image_url=course.badge.image_url, course_id=course.badge.course_id
+        )
+
+    row = db.execute(
+        select(func.avg(Feedback.rating).label("avg"), func.count(Feedback.id).label("cnt"))
+        .where(Feedback.course_id == course.id)
+    ).one()
+    avg_rating = round(float(row.avg), 1) if row.avg else None
+    review_count = row.cnt or 0
+
+    return BrowseCourseSummary(
+        id=course.id,
+        name=course.name,
+        description=course.description,
+        tutor_name=course.user.full_name,
+        unit_count=unit_count,
+        chapter_count=chapter_count,
+        lesson_count=lesson_count,
+        enrollment_count=enrollment_count,
+        tags=tags,
+        badge=badge_detail,
+        price_gems=course.price_gems,
+        discount_percent=course.discount_percent,
+        avg_rating=avg_rating,
+        review_count=review_count,
+    )
+
+
+@router.get("/course/{course_id}/public")
+async def get_course_public_detail(
+    course_id: str,
+    current_user: TokenUser = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Public course detail page — no enrollment required."""
+    try:
+        course = db.execute(
+            select(Course).where(Course.id == course_id, Course.status == "published")
+        ).scalar_one_or_none()
+        if not course:
+            raise NotFoundException("Course")
+
+        return GetCoursePublicDetailResponse(
+            status="success",
+            message="Course retrieved",
+            course=_build_browse_summary(course, db)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error getting public course detail: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.get("/course/{course_id}/reviews")
+async def get_course_reviews(
+    course_id: str,
+    current_user: TokenUser = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all reviews for a course."""
+    try:
+        reviews_rows = db.execute(
+            select(Feedback).where(Feedback.course_id == course_id).order_by(Feedback.created_at.desc())
+        ).scalars().all()
+
+        items = [
+            CourseFeedbackItem(
+                id=fb.id,
+                user_name=fb.user.full_name,
+                rating=fb.rating,
+                comment=fb.comment,
+                created_at=fb.created_at,
+            )
+            for fb in reviews_rows
+        ]
+
+        row = db.execute(
+            select(func.avg(Feedback.rating).label("avg"), func.count(Feedback.id).label("cnt"))
+            .where(Feedback.course_id == course_id)
+        ).one()
+        avg_rating = round(float(row.avg), 1) if row.avg else None
+
+        return GetCourseFeedbackResponse(
+            status="success",
+            message="Reviews retrieved",
+            reviews=items,
+            avg_rating=avg_rating,
+            review_count=row.cnt or 0,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error getting course reviews: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.get("/course/{course_id}/my-feedback")
+async def get_my_feedback(
+    course_id: str,
+    current_user: TokenUser = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the current user's feedback for a course."""
+    try:
+        fb = db.execute(
+            select(Feedback).where(Feedback.course_id == course_id, Feedback.user_id == current_user.user_id)
+        ).scalar_one_or_none()
+
+        if fb:
+            return MyFeedbackResponse(status="success", message="Feedback found", has_feedback=True, rating=fb.rating, comment=fb.comment)
+        return MyFeedbackResponse(status="success", message="No feedback yet", has_feedback=False)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error getting my feedback: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.post("/course/{course_id}/feedback")
+async def submit_feedback(
+    course_id: str,
+    request: SubmitFeedbackRequest,
+    current_user: TokenUser = Depends(require_role("learner")),
+    db: Session = Depends(get_db)
+):
+    """Submit or update a rating/review for an enrolled course."""
+    try:
+        if not (1 <= request.rating <= 5):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rating must be between 1 and 5")
+
+        enrollment = db.execute(
+            select(Enrollment).where(Enrollment.user_id == current_user.user_id, Enrollment.course_id == course_id)
+        ).scalar_one_or_none()
+        if not enrollment:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You must be enrolled to leave a review")
+
+        existing = db.execute(
+            select(Feedback).where(Feedback.user_id == current_user.user_id, Feedback.course_id == course_id)
+        ).scalar_one_or_none()
+
+        if existing:
+            existing.rating = request.rating
+            existing.comment = request.comment
+            existing.updated_at = datetime.now(timezone.utc)
+            db.commit()
+            return SubmitFeedbackResponse(status="success", message="Review updated", feedback_id=existing.id)
+        else:
+            fb = Feedback(
+                id=str(uuid.uuid4()),
+                user_id=current_user.user_id,
+                course_id=course_id,
+                rating=request.rating,
+                comment=request.comment,
+            )
+            db.add(fb)
+            db.commit()
+            return SubmitFeedbackResponse(status="success", message="Review submitted", feedback_id=fb.id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error submitting feedback: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")

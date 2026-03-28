@@ -268,11 +268,44 @@ class BrowseCourseSummary(BaseModel):
     badge: Optional[BadgeDetail] = None
     price_gems: Optional[int] = None
     discount_percent: Optional[int] = None
+    avg_rating: Optional[float] = None
+    review_count: int = 0
 
 class GetBrowseCoursesResponse(BaseModel):
     status: str
     message: str
     courses: List[BrowseCourseSummary]
+
+class GetCoursePublicDetailResponse(BaseModel):
+    status: str
+    message: str
+    course: BrowseCourseSummary
+
+class CourseFeedbackItem(BaseModel):
+    id: str
+    user_name: str
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+
+class GetCourseFeedbackResponse(BaseModel):
+    status: str
+    message: str
+    reviews: List[CourseFeedbackItem]
+    avg_rating: Optional[float] = None
+    review_count: int
+
+class SubmitFeedbackResponse(BaseModel):
+    status: str
+    message: str
+    feedback_id: str
+
+class MyFeedbackResponse(BaseModel):
+    status: str
+    message: str
+    has_feedback: bool
+    rating: Optional[int] = None
+    comment: Optional[str] = None
 
 class EnrollCourseResponse(BaseModel):
     status: str
