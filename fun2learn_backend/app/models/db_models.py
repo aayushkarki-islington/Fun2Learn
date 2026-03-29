@@ -7,6 +7,7 @@ class User(Base):
 
     user_id = Column(String(40), primary_key=True)
     full_name = Column(String(255), nullable=False)
+    username = Column(String(50), unique=True, nullable=True)
     birthdate = Column(Date)
     email = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
@@ -22,6 +23,8 @@ class User(Base):
     user_achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
     daily_quest_progress = relationship("UserDailyQuestProgress", back_populates="user", cascade="all, delete-orphan")
     leaderboard_entries = relationship("LeaderboardEntry", back_populates="user", cascade="all, delete-orphan")
+    followers = relationship("Following", foreign_keys="Following.following_user_id", back_populates="following_user", cascade="all, delete-orphan")
+    following = relationship("Following", foreign_keys="Following.follower_user_id", back_populates="follower_user", cascade="all, delete-orphan")
 
 class ForgotPasswordRequests(Base):
     __tablename__ = "forgot_password_requests"
@@ -302,6 +305,20 @@ class TutorRedeemRequest(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     processed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     tutor = relationship("User")
+
+
+class Following(Base):
+    __tablename__ = "following"
+
+    following_id = Column(String(40), primary_key=True)
+    follower_user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    following_user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    follower_user = relationship("User", foreign_keys=[follower_user_id], back_populates="following")
+    following_user = relationship("User", foreign_keys=[following_user_id], back_populates="followers")
+    __table_args__ = (
+        UniqueConstraint("follower_user_id", "following_user_id", name="uq_following"),
+    )
 
 
 class Feedback(Base):

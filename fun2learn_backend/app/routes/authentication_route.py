@@ -57,11 +57,21 @@ async def signup(
         # Hash the password
         hashed_password = hash_password(request.password)
 
+        # Check username uniqueness if provided
+        if request.username:
+            existing_username = db.query(User).filter(User.username == request.username).first()
+            if existing_username:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Username already taken"
+                )
+
         # Create new user
         user_id = str(uuid.uuid4())
         new_user = User(
             user_id=user_id,
             full_name=request.full_name,
+            username=request.username,
             birthdate=request.birthday,
             email=request.email,
             password=hashed_password,

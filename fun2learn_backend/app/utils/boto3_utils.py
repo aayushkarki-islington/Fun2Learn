@@ -121,6 +121,53 @@ def upload_file_to_s3(
         # Reset file pointer
         file.file.seek(0)
 
+def generate_presigned_url(s3_key: str, bucket_name: str, expiry: int = 3600) -> str:
+    """
+    Generate a presigned URL for a private S3 object.
+
+    Args:
+        s3_key: S3 object key
+        bucket_name: S3 bucket name
+        expiry: URL expiry in seconds (default 1 hour)
+
+    Returns:
+        Presigned URL string
+    """
+    try:
+        s3_client = get_s3_client()
+        url = s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket_name, "Key": s3_key},
+            ExpiresIn=expiry,
+        )
+        return url
+    except ClientError as e:
+        logger.exception(f"Failed to generate presigned URL for {s3_key}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate image URL"
+        )
+
+
+def get_presigned_url_from_path(image_path: str | None, bucket_name: str) -> str | None:
+    """
+    Accept either a stored S3 key or a legacy full S3 URL and return a presigned URL.
+    Returns None if image_path is None/empty.
+    """
+    if not image_path:
+        return None
+    # Legacy entries stored the full URL — extract the key
+    if image_path.startswith("https://"):
+        # e.g. https://bucket.s3.amazonaws.com/profile_pictures/uuid.jpg
+        try:
+            s3_key = "/".join(image_path.split(".amazonaws.com/")[1:])
+        except IndexError:
+            return image_path  # can't parse, return as-is
+    else:
+        s3_key = image_path
+    return generate_presigned_url(s3_key, bucket_name)
+
+
 def delete_file_from_s3(s3_key: str, bucket_name: str) -> None:
     """
     Delete a file from S3.

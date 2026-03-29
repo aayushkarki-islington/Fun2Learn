@@ -6,9 +6,15 @@ class SignUpRequest(BaseModel):
     email: str
     password: str
     full_name: str
+    username: str
     birthday: date
     gender: str
     role: Literal['learner', 'tutor']
+
+
+class UpdateProfileRequest(BaseModel):
+    full_name: Optional[str] = None
+    username: Optional[str] = None
 
 class SignInRequest(BaseModel):
     email: str

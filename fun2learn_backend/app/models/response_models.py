@@ -177,11 +177,83 @@ class GetCourseDetailResponse(BaseModel):
 class UserResponse(BaseModel):
     user_id: str
     full_name: str
+    username: Optional[str] = None
     email: str
     birthdate: Optional[str] = None
     role: str
     gender: str
     image_path: Optional[str] = None
+
+
+class UserSummaryDetail(BaseModel):
+    user_id: str
+    full_name: str
+    username: Optional[str] = None
+    image_path: Optional[str] = None
+    current_rank: Optional[str] = None
+    is_following: bool = False
+
+
+class UserProfileDetail(BaseModel):
+    user_id: str
+    full_name: str
+    username: Optional[str] = None
+    email: Optional[str] = None
+    image_path: Optional[str] = None
+    current_rank: str
+    daily_streak: int
+    longest_streak: int
+    experience_points: int
+    total_achievements: int
+    lessons_completed: int
+    courses_enrolled: int
+    followers_count: int
+    following_count: int
+    earned_badges: List["BadgeDetail"] = []
+    is_following: bool = False
+    is_own_profile: bool = False
+
+
+class GetMyProfileResponse(BaseModel):
+    status: str
+    message: str
+    profile: UserProfileDetail
+
+
+class UpdateProfileResponse(BaseModel):
+    status: str
+    message: str
+
+
+class UploadProfilePictureResponse(BaseModel):
+    status: str
+    message: str
+    image_path: str
+
+
+class FollowResponse(BaseModel):
+    status: str
+    message: str
+
+
+class GetFollowersResponse(BaseModel):
+    status: str
+    message: str
+    users: List[UserSummaryDetail]
+    count: int
+
+
+class GetFollowingResponse(BaseModel):
+    status: str
+    message: str
+    users: List[UserSummaryDetail]
+    count: int
+
+
+class SearchUsersResponse(BaseModel):
+    status: str
+    message: str
+    users: List[UserSummaryDetail]
 
 class ErrorResponse(BaseModel):
     status: str
