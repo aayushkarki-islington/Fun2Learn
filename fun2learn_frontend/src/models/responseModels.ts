@@ -3,7 +3,7 @@ import type {
     BrowseCourseSummary, EnrolledCourseSummary, StudentCourseDetail,
     StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement,
     DailyQuest, CompletedQuestInfo, LeaderboardMember, LeaderboardData,
-    RedeemRequest, AdminStats
+    RedeemRequest, AdminStats, CourseFeedback
 } from './types';
 
 export interface InitiatePaymentResponse {
@@ -305,4 +305,34 @@ export interface AdminStatsResponse {
     total_courses: number;
     total_enrollments: number;
     pending_redeem_requests: number;
+}
+
+// ─── Course detail / feedback response models ────────────
+
+export interface GetCoursePublicDetailResponse {
+    status: string;
+    message: string;
+    course: BrowseCourseSummary;
+}
+
+export interface GetCourseFeedbackResponse {
+    status: string;
+    message: string;
+    reviews: CourseFeedback[];
+    avg_rating?: number | null;
+    review_count: number;
+}
+
+export interface SubmitFeedbackResponse {
+    status: string;
+    message: string;
+    feedback_id: string;
+}
+
+export interface MyFeedbackResponse {
+    status: string;
+    message: string;
+    has_feedback: boolean;
+    rating?: number | null;
+    comment?: string | null;
 }

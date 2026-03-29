@@ -10,7 +10,7 @@ import StudentUnitHeader from "@/components/student/studentUnitHeader";
 import StudentChapterCard from "@/components/student/studentChapterCard";
 import ProgressBar from "@/components/student/progressBar";
 import Button from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { useUser } from "@/context/user-context";
 
 const StudentCoursePage = () => {
@@ -94,6 +94,12 @@ const StudentCoursePage = () => {
                                 <ProgressBar percent={course.progress_percent} size="sm" className="flex-1 max-w-xs" />
                             </div>
                         </div>
+                        <button
+                            onClick={() => router.push(`/student/browse/${courseId}`)}
+                            className="flex cursor-pointer items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap"
+                        >
+                            <Info size={15} /> Course Overview
+                        </button>
                     </div>
                 </div>
             </div>

@@ -131,6 +131,16 @@ export interface BrowseCourseSummary {
     badge: Badge | null;
     price_gems?: number | null;
     discount_percent?: number | null;
+    avg_rating?: number | null;
+    review_count?: number;
+}
+
+export interface CourseFeedback {
+    id: string;
+    user_name: string;
+    rating: number;
+    comment?: string | null;
+    created_at: string;
 }
 
 export type RedeemRequestStatus = 'pending' | 'paid' | 'rejected';

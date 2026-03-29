@@ -36,3 +36,8 @@ export interface UpdateRedeemStatusRequest {
     status: 'paid' | 'rejected';
     notes?: string;
 }
+
+export interface SubmitFeedbackRequest {
+    rating: number;
+    comment?: string;
+}

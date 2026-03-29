@@ -5,7 +5,9 @@ import type {
     GetMyCoursesResponse, GetStudentCourseDetailResponse,
     GetStudentLessonResponse, SubmitAnswerResponse, CompleteLessonResponse,
     GetStreakResponse, GetAchievementsResponse, GetDailyQuestsResponse,
-    GetLeaderboardResponse, InitiatePaymentResponse
+    GetLeaderboardResponse, InitiatePaymentResponse,
+    GetCoursePublicDetailResponse, GetCourseFeedbackResponse,
+    SubmitFeedbackResponse, MyFeedbackResponse
 } from "@/models/responseModels";
 
 const API_URL = config.API_URL;
@@ -304,5 +306,78 @@ export const getLeaderboard = async () => {
         return { success: false, errorMessage: data.message };
     } catch (e) {
         return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch leaderboard" };
+    }
+};
+
+export const getCoursePublicDetail = async (courseId: string) => {
+    try {
+        const response = await fetch(`${API_URL}/student/course/${courseId}/public`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch course");
+        }
+        const data = await response.json() as GetCoursePublicDetailResponse;
+        if (data.status === "success") return { success: true, course: data.course };
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch course" };
+    }
+};
+
+export const getCourseReviews = async (courseId: string) => {
+    try {
+        const response = await fetch(`${API_URL}/student/course/${courseId}/reviews`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch reviews");
+        }
+        const data = await response.json() as GetCourseFeedbackResponse;
+        if (data.status === "success") return { success: true, reviews: data.reviews, avgRating: data.avg_rating, reviewCount: data.review_count };
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch reviews" };
+    }
+};
+
+export const getMyCourseFeedback = async (courseId: string) => {
+    try {
+        const response = await fetch(`${API_URL}/student/course/${courseId}/my-feedback`, {
+            method: "GET",
+            headers: getHeaders(),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to fetch feedback");
+        }
+        const data = await response.json() as MyFeedbackResponse;
+        if (data.status === "success") return { success: true, hasFeedback: data.has_feedback, rating: data.rating, comment: data.comment };
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to fetch feedback" };
+    }
+};
+
+export const submitCourseFeedback = async (courseId: string, rating: number, comment?: string) => {
+    try {
+        const response = await fetch(`${API_URL}/student/course/${courseId}/feedback`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ rating, comment }),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error?.message || error?.detail || "Failed to submit feedback");
+        }
+        const data = await response.json() as SubmitFeedbackResponse;
+        if (data.status === "success") return { success: true, feedbackId: data.feedback_id };
+        return { success: false, errorMessage: data.message };
+    } catch (e) {
+        return { success: false, errorMessage: e instanceof Error ? e.message : "Failed to submit feedback" };
     }
 };
