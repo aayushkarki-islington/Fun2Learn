@@ -11,11 +11,41 @@ export type CourseStatus = 'draft' | 'published'
 export interface User {
     user_id: string,
     full_name: string;
+    username?: string | null;
     email: string;
     birthdate: string;
     role: string;
     gender: string;
     image_path: string;
+}
+
+export interface UserProfile {
+    user_id: string;
+    full_name: string;
+    username?: string | null;
+    email?: string | null;
+    image_path?: string | null;
+    current_rank: string;
+    daily_streak: number;
+    longest_streak: number;
+    experience_points: number;
+    total_achievements: number;
+    lessons_completed: number;
+    courses_enrolled: number;
+    followers_count: number;
+    following_count: number;
+    earned_badges: Badge[];
+    is_following: boolean;
+    is_own_profile: boolean;
+}
+
+export interface UserSummary {
+    user_id: string;
+    full_name: string;
+    username?: string | null;
+    image_path?: string | null;
+    current_rank?: string | null;
+    is_following: boolean;
 }
 
 export interface CourseSummary {

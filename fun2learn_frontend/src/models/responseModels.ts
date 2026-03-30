@@ -3,7 +3,8 @@ import type {
     BrowseCourseSummary, EnrolledCourseSummary, StudentCourseDetail,
     StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement,
     DailyQuest, CompletedQuestInfo, LeaderboardMember, LeaderboardData,
-    RedeemRequest, AdminStats, CourseFeedback
+    RedeemRequest, AdminStats, CourseFeedback,
+    UserProfile, UserSummary
 } from './types';
 
 export interface InitiatePaymentResponse {
@@ -335,4 +336,48 @@ export interface MyFeedbackResponse {
     has_feedback: boolean;
     rating?: number | null;
     comment?: string | null;
+}
+
+// ─── Profile response models ─────────────────────────────
+
+export interface GetUserProfileResponse {
+    status: string;
+    message: string;
+    profile: UserProfile;
+}
+
+export interface UpdateProfileResponse {
+    status: string;
+    message: string;
+}
+
+export interface UploadProfilePictureResponse {
+    status: string;
+    message: string;
+    image_path: string;
+}
+
+export interface FollowResponse {
+    status: string;
+    message: string;
+}
+
+export interface GetFollowersResponse {
+    status: string;
+    message: string;
+    users: UserSummary[];
+    count: number;
+}
+
+export interface GetFollowingResponse {
+    status: string;
+    message: string;
+    users: UserSummary[];
+    count: number;
+}
+
+export interface SearchUsersResponse {
+    status: string;
+    message: string;
+    users: UserSummary[];
 }

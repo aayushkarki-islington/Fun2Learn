@@ -109,6 +109,7 @@ export const SignUpForm = ({
     onSignUp
 }: SignUpFromProps) => {
     const [name, setName] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -127,6 +128,7 @@ export const SignUpForm = ({
 
         const signupData: SignUpRequest = {
             fullName: name,
+            username: username,
             email: email,
             password: password,
             birthday: birthdate,
@@ -157,6 +159,21 @@ export const SignUpForm = ({
                         placeholder="Enter your name" 
                         onChange={(e) => setName(e.target.value)}
                     />
+                </div>
+
+                <div className="flex flex-col">
+                    <label className="mb-2">Username</label>
+                    <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">@</span>
+                        <input
+                            type="text"
+                            className="h-12 rounded-md border border-custom-gray pl-7 pr-2 w-full"
+                            value={username}
+                            name="username"
+                            placeholder="your_username"
+                            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                        />
+                    </div>
                 </div>
 
                 <div className="flex gap-4">

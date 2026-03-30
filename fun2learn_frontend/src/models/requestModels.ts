@@ -7,9 +7,15 @@ export interface SignUpRequest {
     email: string;
     password: string;
     fullName: string;
+    username: string;
     birthday: string; // ISO date string (YYYY-MM-DD)
     gender: string;
     role: 'learner' | 'tutor';
+}
+
+export interface UpdateProfileRequest {
+    full_name?: string;
+    username?: string;
 }
 
 export interface ForgotPasswordRequest {

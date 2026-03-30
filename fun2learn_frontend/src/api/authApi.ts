@@ -80,6 +80,7 @@ export const signup = async (payload: SignUpRequest) => {
                 "email": payload.email,
                 "password": payload.password,
                 "full_name": payload.fullName,
+                "username": payload.username,
                 "birthday": payload.birthday,
                 "gender": payload.gender,
                 "role": payload.role
