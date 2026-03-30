@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
-import type { UserProfile, UserSummary, Badge } from "@/models/types";
+import type { UserProfile, UserSummary, Badge, TutorProfileCourse } from "@/models/types";
 import {
     getMyProfile, updateProfile, uploadProfilePicture,
     followUser, unfollowUser, getFollowers, getFollowing, searchUsers
@@ -15,7 +15,8 @@ import { ICON_MAP } from "@/components/prepublish/iconMap";
 import {
     Flame, Zap, Trophy, BookOpen, GraduationCap,
     Pencil, Camera, X, Search, UserPlus, UserCheck, Users,
-    Crown, Shield, Medal, Star, Award, Sparkles, ChevronRight, Gem
+    Crown, Shield, Medal, Star, Award, Sparkles, ChevronRight, Gem,
+    BookMarked, Star as StarIcon, Users as UsersIcon, Briefcase
 } from "lucide-react";
 
 // ─── Rank config ──────────────────────────────────────────
@@ -34,7 +35,6 @@ function getRankConfig(rank: string) {
     return RANK_CONFIG[rank?.toLowerCase()] ?? RANK_CONFIG["bronze"];
 }
 
-// ─── Avatar ───────────────────────────────────────────────
 function Avatar({
     imagePath, fullName, rank, size = "lg", onClick
 }: {
@@ -48,7 +48,6 @@ function Avatar({
     const sizeClasses = size === "lg" ? "w-28 h-28 text-4xl" : size === "md" ? "w-14 h-14 text-xl" : "w-10 h-10 text-sm";
     const borderClasses = size === "lg" ? "border-4" : "border-2";
     const initials = fullName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-
     return (
         <div
             className={`relative ${sizeClasses} rounded-full ${borderClasses} ${cfg.border} overflow-hidden flex-shrink-0 ${onClick ? "cursor-pointer group" : ""}`}
@@ -70,7 +69,6 @@ function Avatar({
     );
 }
 
-// ─── Rank Badge ───────────────────────────────────────────
 function RankBadge({ rank }: { rank: string }) {
     const cfg = getRankConfig(rank);
     return (
@@ -81,7 +79,15 @@ function RankBadge({ rank }: { rank: string }) {
     );
 }
 
-// ─── Stat Card ────────────────────────────────────────────
+function TutorBadge() {
+    return (
+        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border border-violet-400 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400">
+            <Briefcase size={13} />
+            Tutor
+        </span>
+    );
+}
+
 function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string | number; color: string }) {
     return (
         <div className="flex flex-col items-center gap-1 p-4 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 min-w-[90px]">
@@ -92,7 +98,6 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
     );
 }
 
-// ─── Badge Display ────────────────────────────────────────
 function BadgeDisplay({ badge }: { badge: Badge }) {
     const IconComponent = badge.icon_name ? ICON_MAP[badge.icon_name] : null;
     return (
@@ -105,16 +110,13 @@ function BadgeDisplay({ badge }: { badge: Badge }) {
                 ) : (
                     <Trophy size={28} className="text-yellow-600 dark:text-yellow-400" />
                 )}
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm text-xs">
-                    ⭐
-                </div>
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm text-xs">⭐</div>
             </div>
             <span className="text-xs font-bold text-gray-600 dark:text-gray-400 text-center max-w-[72px] truncate">{badge.name}</span>
         </div>
     );
 }
 
-// ─── User Card (followers/following/search) ────────────────
 function UserCard({
     user, onFollow, onUnfollow, onViewProfile
 }: {
@@ -130,30 +132,18 @@ function UserCard({
                 <Avatar imagePath={user.image_path} fullName={user.full_name} rank={user.current_rank ?? "bronze"} size="sm" />
             </div>
             <div className="flex-1 min-w-0" onClick={() => onViewProfile(user.user_id)} role="button">
-                <p className="font-bold text-sm text-gray-800 dark:text-gray-100 truncate cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
-                    {user.full_name}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {user.username ? `@${user.username}` : ""}
-                </p>
+                <p className="font-bold text-sm text-gray-800 dark:text-gray-100 truncate cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition-colors">{user.full_name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user.username ? `@${user.username}` : ""}</p>
             </div>
             <div className="flex items-center gap-2">
                 <span className={`text-xs font-bold ${cfg.color} hidden sm:block`}>{cfg.label}</span>
                 {user.is_following ? (
-                    <button
-                        onClick={() => onUnfollow(user.user_id)}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all border-2 border-transparent"
-                    >
-                        <UserCheck size={12} />
-                        Following
+                    <button onClick={() => onUnfollow(user.user_id)} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all border-2 border-transparent">
+                        <UserCheck size={12} />Following
                     </button>
                 ) : (
-                    <button
-                        onClick={() => onFollow(user.user_id)}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500 text-white hover:bg-blue-600 transition-all"
-                    >
-                        <UserPlus size={12} />
-                        Follow
+                    <button onClick={() => onFollow(user.user_id)} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500 text-white hover:bg-blue-600 transition-all">
+                        <UserPlus size={12} />Follow
                     </button>
                 )}
             </div>
@@ -161,11 +151,55 @@ function UserCard({
     );
 }
 
-// ─── Edit Profile Modal ───────────────────────────────────
+function TutorCourseCard({ course }: { course: TutorProfileCourse }) {
+    const IconComponent = course.badge?.icon_name ? ICON_MAP[course.badge.icon_name] : null;
+    const effectivePrice = course.price_gems != null && course.discount_percent
+        ? Math.round(course.price_gems * (1 - course.discount_percent / 100))
+        : course.price_gems;
+
+    return (
+        <div className="flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 hover:border-violet-200 dark:hover:border-violet-700 transition-all">
+            {/* Badge icon */}
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-50 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-700 flex items-center justify-center flex-shrink-0">
+                {course.badge?.badge_type === "icon" && IconComponent ? (
+                    <IconComponent size={24} className="text-violet-600 dark:text-violet-400" />
+                ) : course.badge?.badge_type === "image" && course.badge.image_url ? (
+                    <img src={course.badge.image_url} alt={course.name} className="w-10 h-10 rounded-lg object-cover" />
+                ) : (
+                    <BookMarked size={22} className="text-violet-500" />
+                )}
+            </div>
+
+            <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-800 dark:text-gray-100 truncate">{course.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">{course.description}</p>
+                <div className="flex items-center gap-3 mt-2">
+                    {course.avg_rating != null ? (
+                        <span className="flex items-center gap-1 text-xs font-bold text-yellow-500">
+                            <StarIcon size={12} fill="currentColor" />
+                            {course.avg_rating.toFixed(1)}
+                            <span className="text-gray-400 font-normal">({course.review_count})</span>
+                        </span>
+                    ) : (
+                        <span className="text-xs text-gray-400">No ratings yet</span>
+                    )}
+                    <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                        <UsersIcon size={11} />
+                        {course.enrollment_count} students
+                    </span>
+                    {effectivePrice != null ? (
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{effectivePrice} gems</span>
+                    ) : (
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Free</span>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function EditProfileModal({
-    profile,
-    onClose,
-    onSaved,
+    profile, onClose, onSaved,
 }: {
     profile: UserProfile;
     onClose: () => void;
@@ -194,9 +228,7 @@ function EditProfileModal({
             <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 w-full max-w-md shadow-xl">
                 <div className="flex items-center justify-between px-6 py-4 border-b-2 border-gray-100 dark:border-gray-800">
                     <h3 className="font-lilita text-xl text-gray-800 dark:text-gray-100">Edit Profile</h3>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
-                        <X size={20} />
-                    </button>
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"><X size={20} /></button>
                 </div>
                 <div className="px-6 py-5 flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
@@ -223,29 +255,15 @@ function EditProfileModal({
                     </div>
                 </div>
                 <div className="px-6 pb-5 flex gap-3">
-                    <Button className="flex-1" onClick={handleSave} isLoading={isSaving} loadingText="Saving...">
-                        Save Changes
-                    </Button>
-                    <button
-                        onClick={onClose}
-                        className="flex-1 h-11 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                    >
-                        Cancel
-                    </button>
+                    <Button className="flex-1" onClick={handleSave} isLoading={isSaving} loadingText="Saving...">Save Changes</Button>
+                    <button onClick={onClose} className="flex-1 h-11 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">Cancel</button>
                 </div>
             </div>
         </div>
     );
 }
 
-// ─── Search Users Modal ────────────────────────────────────
-function SearchUsersModal({
-    onClose,
-    onFollowChange,
-}: {
-    onClose: () => void;
-    onFollowChange: () => void;
-}) {
+function SearchUsersModal({ onClose, onFollowChange }: { onClose: () => void; onFollowChange: () => void; }) {
     const router = useRouter();
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<UserSummary[]>([]);
@@ -285,9 +303,7 @@ function SearchUsersModal({
             <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 w-full max-w-md shadow-xl">
                 <div className="flex items-center justify-between px-6 py-4 border-b-2 border-gray-100 dark:border-gray-800">
                     <h3 className="font-lilita text-xl text-gray-800 dark:text-gray-100">Find Friends</h3>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
-                        <X size={20} />
-                    </button>
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"><X size={20} /></button>
                 </div>
                 <div className="px-6 py-4">
                     <div className="relative">
@@ -302,22 +318,16 @@ function SearchUsersModal({
                     </div>
                 </div>
                 <div className="px-6 pb-5 flex flex-col gap-2 max-h-80 overflow-y-auto">
-                    {isSearching && (
-                        <p className="text-center text-sm text-gray-400 py-4">Searching...</p>
-                    )}
-                    {!isSearching && query.length >= 2 && results.length === 0 && (
-                        <p className="text-center text-sm text-gray-400 py-4">No users found</p>
-                    )}
-                    {!isSearching && query.length < 2 && (
-                        <p className="text-center text-sm text-gray-400 py-4">Type at least 2 characters to search</p>
-                    )}
+                    {isSearching && <p className="text-center text-sm text-gray-400 py-4">Searching...</p>}
+                    {!isSearching && query.length >= 2 && results.length === 0 && <p className="text-center text-sm text-gray-400 py-4">No users found</p>}
+                    {!isSearching && query.length < 2 && <p className="text-center text-sm text-gray-400 py-4">Type at least 2 characters to search</p>}
                     {results.map(user => (
                         <UserCard
                             key={user.user_id}
                             user={user}
                             onFollow={handleFollow}
                             onUnfollow={handleUnfollow}
-                            onViewProfile={(id) => { router.push(`/student/profile/${id}`); onClose(); }}
+                            onViewProfile={(id) => { router.push(`/users/profile/${id}`); onClose(); }}
                         />
                     ))}
                 </div>
@@ -326,8 +336,127 @@ function SearchUsersModal({
     );
 }
 
-// ─── Followers / Following Tab ────────────────────────────
 type TabType = "stats" | "followers" | "following";
+
+// ─── Student content ──────────────────────────────────────
+function StudentProfileContent({ profile, onNavigate }: { profile: UserProfile; onNavigate: (path: string) => void }) {
+    const rankCfg = getRankConfig(profile.current_rank);
+    return (
+        <div className="space-y-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <StatCard icon={<Flame size={24} fill="currentColor" />} label="Day Streak" value={profile.daily_streak} color="text-orange-500" />
+                <StatCard icon={<Zap size={24} fill="currentColor" />} label="Total XP" value={profile.experience_points.toLocaleString()} color="text-blue-500" />
+                <StatCard icon={<Trophy size={24} fill="currentColor" />} label="Achievements" value={profile.total_achievements} color="text-yellow-400" />
+                <StatCard icon={<BookOpen size={24} />} label="Lessons" value={profile.lessons_completed} color="text-green-500" />
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
+                <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                    <Trophy size={18} className="text-yellow-500" />
+                    Badges
+                    <span className="ml-auto text-xs font-bold text-gray-400 dark:text-gray-500">{profile.earned_badges.length} earned</span>
+                </h3>
+                {profile.earned_badges.length === 0 ? (
+                    <p className="text-center text-gray-400 dark:text-gray-500 py-6 text-sm">Complete courses to earn badges!</p>
+                ) : (
+                    <div className="flex flex-wrap gap-5">
+                        {profile.earned_badges.map(badge => <BadgeDisplay key={badge.id} badge={badge} />)}
+                    </div>
+                )}
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
+                <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                    <Flame size={18} className="text-orange-500" />
+                    Streak
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
+                        <p className="text-3xl font-black text-orange-500">{profile.daily_streak}</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-1">Current Streak</p>
+                    </div>
+                    <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                        <p className="text-3xl font-black text-red-500">{profile.longest_streak}</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-1">Longest Streak</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
+                <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                    <GraduationCap size={18} className="text-blue-500" />
+                    Learning
+                </h3>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Courses Enrolled</span>
+                        <span className="text-sm font-black text-gray-800 dark:text-gray-100">{profile.courses_enrolled}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Lessons Completed</span>
+                        <span className="text-sm font-black text-gray-800 dark:text-gray-100">{profile.lessons_completed}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                        <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Achievements Unlocked</span>
+                        <span className="text-sm font-black text-gray-800 dark:text-gray-100">{profile.total_achievements}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className={`bg-white dark:bg-gray-800 rounded-2xl border-2 ${rankCfg.border} p-5`}>
+                <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                    <Shield size={18} className={rankCfg.color} />
+                    Leaderboard Rank
+                </h3>
+                <div className={`flex items-center justify-between p-4 rounded-xl ${rankCfg.bg}`}>
+                    <div className="flex items-center gap-3">
+                        <span className={`text-2xl ${rankCfg.color}`}>{rankCfg.icon}</span>
+                        <div>
+                            <p className={`text-lg font-black ${rankCfg.color}`}>{rankCfg.label}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Current League</p>
+                        </div>
+                    </div>
+                    <button onClick={() => onNavigate("/student/leaderboards")} className={`flex items-center gap-1 text-sm font-bold ${rankCfg.color} hover:opacity-70 transition-opacity cursor-pointer`}>
+                        View <ChevronRight size={16} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Tutor content ────────────────────────────────────────
+function TutorProfileContent({ profile }: { profile: UserProfile }) {
+    return (
+        <div className="space-y-5">
+            <div className="grid grid-cols-3 gap-3">
+                <StatCard icon={<BookMarked size={24} />} label="Courses" value={profile.courses_created ?? 0} color="text-violet-500" />
+                <StatCard
+                    icon={<StarIcon size={24} fill="currentColor" />}
+                    label="Avg Rating"
+                    value={profile.avg_course_rating != null ? profile.avg_course_rating.toFixed(1) : "—"}
+                    color="text-yellow-500"
+                />
+                <StatCard icon={<UsersIcon size={24} />} label="Students" value={profile.total_unique_students ?? 0} color="text-blue-500" />
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
+                <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                    <BookMarked size={18} className="text-violet-500" />
+                    Published Courses
+                    <span className="ml-auto text-xs font-bold text-gray-400 dark:text-gray-500">{profile.tutor_courses?.length ?? 0} courses</span>
+                </h3>
+                {!profile.tutor_courses || profile.tutor_courses.length === 0 ? (
+                    <p className="text-center text-gray-400 dark:text-gray-500 py-8 text-sm">No published courses yet.</p>
+                ) : (
+                    <div className="space-y-3">
+                        {profile.tutor_courses.map(course => <TutorCourseCard key={course.id} course={course} />)}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
 // ─── Main Profile Page ────────────────────────────────────
 const ProfilePage = () => {
@@ -435,10 +564,8 @@ const ProfilePage = () => {
                                 <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20" />
                             </div>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                                <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
-                            ))}
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-2xl" />)}
                         </div>
                     </div>
                 </main>
@@ -448,19 +575,17 @@ const ProfilePage = () => {
 
     if (!profile) return null;
 
-    const rankCfg = getRankConfig(profile.current_rank);
+    const isTutor = profile.role === "tutor";
+    const tabs: TabType[] = isTutor ? ["stats", "followers", "following"] : ["stats", "followers", "following"];
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <Sidebar />
-
             <main className="sidebar-layout max-w-3xl mx-auto px-6 py-8">
 
                 {/* ── Profile Header ── */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-6 mb-5">
                     <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-
-                        {/* Avatar with upload */}
                         <div className="relative">
                             {isUploadingPic ? (
                                 <div className="w-28 h-28 rounded-full border-4 border-gray-200 dark:border-gray-600 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
@@ -475,51 +600,29 @@ const ProfilePage = () => {
                                     onClick={() => fileInputRef.current?.click()}
                                 />
                             )}
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                className="hidden"
-                                onChange={handlePicUpload}
-                            />
+                            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePicUpload} />
                         </div>
 
-                        {/* Name + rank + actions */}
                         <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2 mb-1">
-                                <h1 className="font-lilita text-2xl text-gray-800 dark:text-gray-100 truncate">
-                                    {profile.full_name}
-                                </h1>
-                                <RankBadge rank={profile.current_rank} />
+                                <h1 className="font-lilita text-2xl text-gray-800 dark:text-gray-100 truncate">{profile.full_name}</h1>
+                                {isTutor ? <TutorBadge /> : <RankBadge rank={profile.current_rank} />}
                             </div>
                             {profile.username && (
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">@{profile.username}</p>
                             )}
-
-                            {/* Followers / Following counts */}
                             <div className="flex gap-4 mb-4">
-                                <button
-                                    onClick={() => handleTabChange("followers")}
-                                    className="text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer"
-                                >
-                                    <span className="text-gray-900 dark:text-white">{profile.followers_count}</span>
-                                    {" "}<span className="text-gray-500 dark:text-gray-400 font-normal">followers</span>
+                                <button onClick={() => handleTabChange("followers")} className="text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                                    <span className="text-gray-900 dark:text-white">{profile.followers_count}</span>{" "}
+                                    <span className="text-gray-500 dark:text-gray-400 font-normal">followers</span>
                                 </button>
-                                <button
-                                    onClick={() => handleTabChange("following")}
-                                    className="text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer"
-                                >
-                                    <span className="text-gray-900 dark:text-white">{profile.following_count}</span>
-                                    {" "}<span className="text-gray-500 dark:text-gray-400 font-normal">following</span>
+                                <button onClick={() => handleTabChange("following")} className="text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                                    <span className="text-gray-900 dark:text-white">{profile.following_count}</span>{" "}
+                                    <span className="text-gray-500 dark:text-gray-400 font-normal">following</span>
                                 </button>
                             </div>
-
-                            {/* Action buttons */}
                             <div className="flex flex-wrap gap-2">
-                                <Button
-                                    className="text-sm flex items-center gap-1.5"
-                                    onClick={() => setShowEditModal(true)}
-                                >
+                                <Button className="text-sm flex items-center gap-1.5" onClick={() => setShowEditModal(true)}>
                                     <Pencil size={14} />
                                     Edit Profile
                                 </Button>
@@ -528,7 +631,7 @@ const ProfilePage = () => {
                                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-sm font-bold text-gray-600 dark:text-gray-300 hover:border-blue-300 hover:text-blue-500 dark:hover:border-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer"
                                 >
                                     <UserPlus size={14} />
-                                    Add Friends
+                                    Find Friends
                                 </button>
                             </div>
                         </div>
@@ -537,139 +640,26 @@ const ProfilePage = () => {
 
                 {/* ── Tabs ── */}
                 <div className="flex gap-1 p-1 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 mb-5">
-                    {(["stats", "followers", "following"] as TabType[]).map((tab) => (
+                    {tabs.map((tab) => (
                         <button
                             key={tab}
                             onClick={() => handleTabChange(tab)}
                             className={`flex-1 py-2.5 rounded-xl text-sm font-bold capitalize transition-all cursor-pointer ${
-                                activeTab === tab
-                                    ? "bg-blue-500 text-white shadow-sm"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                activeTab === tab ? "bg-blue-500 text-white shadow-sm" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                             }`}
                         >
                             {tab === "followers" ? `Followers (${profile.followers_count})` :
                              tab === "following" ? `Following (${profile.following_count})` :
-                             "Stats"}
+                             isTutor ? "Overview" : "Stats"}
                         </button>
                     ))}
                 </div>
 
-                {/* ── Stats Tab ── */}
+                {/* ── Main Tab ── */}
                 {activeTab === "stats" && (
-                    <div className="space-y-5">
-                        {/* Core stats grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <StatCard
-                                icon={<Flame size={24} fill="currentColor" />}
-                                label="Day Streak"
-                                value={profile.daily_streak}
-                                color="text-orange-500"
-                            />
-                            <StatCard
-                                icon={<Zap size={24} fill="currentColor" />}
-                                label="Total XP"
-                                value={profile.experience_points.toLocaleString()}
-                                color="text-blue-500"
-                            />
-                            <StatCard
-                                icon={<Trophy size={24} fill="currentColor" />}
-                                label="Achievements"
-                                value={profile.total_achievements}
-                                color="text-yellow-400"
-                            />
-                            <StatCard
-                                icon={<BookOpen size={24} />}
-                                label="Lessons"
-                                value={profile.lessons_completed}
-                                color="text-green-500"
-                            />
-                        </div>
-
-                        {/* Badges */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
-                            <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                                <Trophy size={18} className="text-yellow-500" />
-                                Badges
-                                <span className="ml-auto text-xs font-bold text-gray-400 dark:text-gray-500">
-                                    {profile.earned_badges.length} earned
-                                </span>
-                            </h3>
-                            {profile.earned_badges.length === 0 ? (
-                                <p className="text-center text-gray-400 dark:text-gray-500 py-6 text-sm">
-                                    Complete courses to earn badges!
-                                </p>
-                            ) : (
-                                <div className="flex flex-wrap gap-5">
-                                    {profile.earned_badges.map(badge => (
-                                        <BadgeDisplay key={badge.id} badge={badge} />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Streak info card */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
-                            <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                                <Flame size={18} className="text-orange-500" />
-                                Streak
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
-                                    <p className="text-3xl font-black text-orange-500">{profile.daily_streak}</p>
-                                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-1">Current Streak</p>
-                                </div>
-                                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
-                                    <p className="text-3xl font-black text-red-500">{profile.longest_streak}</p>
-                                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-1">Longest Streak</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Learning stats card */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
-                            <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                                <GraduationCap size={18} className="text-blue-500" />
-                                Learning
-                            </h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Courses Enrolled</span>
-                                    <span className="text-sm font-black text-gray-800 dark:text-gray-100">{profile.courses_enrolled}</span>
-                                </div>
-                                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Lessons Completed</span>
-                                    <span className="text-sm font-black text-gray-800 dark:text-gray-100">{profile.lessons_completed}</span>
-                                </div>
-                                <div className="flex items-center justify-between py-2">
-                                    <span className="text-sm font-bold text-gray-600 dark:text-gray-400">Achievements Unlocked</span>
-                                    <span className="text-sm font-black text-gray-800 dark:text-gray-100">{profile.total_achievements}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Rank card */}
-                        <div className={`bg-white dark:bg-gray-800 rounded-2xl border-2 ${rankCfg.border} p-5`}>
-                            <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                                <Shield size={18} className={rankCfg.color} />
-                                Leaderboard Rank
-                            </h3>
-                            <div className={`flex items-center justify-between p-4 rounded-xl ${rankCfg.bg}`}>
-                                <div className="flex items-center gap-3">
-                                    <span className={`text-2xl ${rankCfg.color}`}>{rankCfg.icon}</span>
-                                    <div>
-                                        <p className={`text-lg font-black ${rankCfg.color}`}>{rankCfg.label}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Current League</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => router.push("/student/leaderboards")}
-                                    className={`flex items-center gap-1 text-sm font-bold ${rankCfg.color} hover:opacity-70 transition-opacity cursor-pointer`}
-                                >
-                                    View <ChevronRight size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    isTutor
+                        ? <TutorProfileContent profile={profile} />
+                        : <StudentProfileContent profile={profile} onNavigate={(path) => router.push(path)} />
                 )}
 
                 {/* ── Followers Tab ── */}
@@ -677,28 +667,16 @@ const ProfilePage = () => {
                     <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
                         <div className="flex items-center gap-2 mb-4">
                             <Users size={18} className="text-blue-500" />
-                            <h3 className="font-bold text-gray-700 dark:text-gray-300">
-                                Followers ({profile.followers_count})
-                            </h3>
+                            <h3 className="font-bold text-gray-700 dark:text-gray-300">Followers ({profile.followers_count})</h3>
                         </div>
                         {loadingList ? (
-                            <div className="space-y-3">
-                                {Array.from({ length: 3 }).map((_, i) => (
-                                    <div key={i} className="h-16 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
-                                ))}
-                            </div>
+                            <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />)}</div>
                         ) : followers.length === 0 ? (
                             <p className="text-center text-gray-400 dark:text-gray-500 py-8 text-sm">No followers yet. Share your profile!</p>
                         ) : (
                             <div className="space-y-2">
                                 {followers.map(user => (
-                                    <UserCard
-                                        key={user.user_id}
-                                        user={user}
-                                        onFollow={handleFollowFromList}
-                                        onUnfollow={handleUnfollowFromList}
-                                        onViewProfile={(id) => router.push(`/student/profile/${id}`)}
-                                    />
+                                    <UserCard key={user.user_id} user={user} onFollow={handleFollowFromList} onUnfollow={handleUnfollowFromList} onViewProfile={(id) => router.push(`/users/profile/${id}`)} />
                                 ))}
                             </div>
                         )}
@@ -710,28 +688,16 @@ const ProfilePage = () => {
                     <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-5">
                         <div className="flex items-center gap-2 mb-4">
                             <Users size={18} className="text-blue-500" />
-                            <h3 className="font-bold text-gray-700 dark:text-gray-300">
-                                Following ({profile.following_count})
-                            </h3>
+                            <h3 className="font-bold text-gray-700 dark:text-gray-300">Following ({profile.following_count})</h3>
                         </div>
                         {loadingList ? (
-                            <div className="space-y-3">
-                                {Array.from({ length: 3 }).map((_, i) => (
-                                    <div key={i} className="h-16 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
-                                ))}
-                            </div>
+                            <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />)}</div>
                         ) : following.length === 0 ? (
                             <p className="text-center text-gray-400 dark:text-gray-500 py-8 text-sm">Not following anyone yet.</p>
                         ) : (
                             <div className="space-y-2">
                                 {following.map(user => (
-                                    <UserCard
-                                        key={user.user_id}
-                                        user={user}
-                                        onFollow={handleFollowFromList}
-                                        onUnfollow={handleUnfollowFromList}
-                                        onViewProfile={(id) => router.push(`/student/profile/${id}`)}
-                                    />
+                                    <UserCard key={user.user_id} user={user} onFollow={handleFollowFromList} onUnfollow={handleUnfollowFromList} onViewProfile={(id) => router.push(`/users/profile/${id}`)} />
                                 ))}
                             </div>
                         )}
@@ -739,19 +705,11 @@ const ProfilePage = () => {
                 )}
             </main>
 
-            {/* ── Modals ── */}
             {showEditModal && profile && (
-                <EditProfileModal
-                    profile={profile}
-                    onClose={() => setShowEditModal(false)}
-                    onSaved={handleProfileSaved}
-                />
+                <EditProfileModal profile={profile} onClose={() => setShowEditModal(false)} onSaved={handleProfileSaved} />
             )}
             {showSearchModal && (
-                <SearchUsersModal
-                    onClose={() => setShowSearchModal(false)}
-                    onFollowChange={loadProfile}
-                />
+                <SearchUsersModal onClose={() => setShowSearchModal(false)} onFollowChange={loadProfile} />
             )}
         </div>
     );

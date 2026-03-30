@@ -19,12 +19,25 @@ export interface User {
     image_path: string;
 }
 
+export interface TutorProfileCourse {
+    id: string;
+    name: string;
+    description: string;
+    avg_rating?: number | null;
+    review_count: number;
+    enrollment_count: number;
+    badge?: Badge | null;
+    price_gems?: number | null;
+    discount_percent?: number | null;
+}
+
 export interface UserProfile {
     user_id: string;
     full_name: string;
     username?: string | null;
     email?: string | null;
     image_path?: string | null;
+    role: string;
     current_rank: string;
     daily_streak: number;
     longest_streak: number;
@@ -37,6 +50,11 @@ export interface UserProfile {
     earned_badges: Badge[];
     is_following: boolean;
     is_own_profile: boolean;
+    // Tutor-specific
+    courses_created?: number | null;
+    avg_course_rating?: number | null;
+    total_unique_students?: number | null;
+    tutor_courses?: TutorProfileCourse[] | null;
 }
 
 export interface UserSummary {

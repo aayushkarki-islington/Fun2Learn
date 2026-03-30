@@ -72,8 +72,8 @@ const studentNavItems: NavItem[] = [
     {
         label: "Profile",
         icon: <UserRound size={24} />,
-        href: "/student/profile",
-        matchPaths: ["/student/profile"],
+        href: "/users/profile",
+        matchPaths: ["/users/profile"],
     },
 ];
 
@@ -95,6 +95,12 @@ const tutorNavItems: NavItem[] = [
         icon: <Coins size={24} />,
         href: "/tutor/redeem",
         matchPaths: ["/tutor/redeem"],
+    },
+    {
+        label: "Profile",
+        icon: <UserRound size={24} />,
+        href: "/users/profile",
+        matchPaths: ["/users/profile"],
     },
 ];
 

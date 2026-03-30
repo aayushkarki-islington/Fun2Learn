@@ -200,6 +200,7 @@ class UserProfileDetail(BaseModel):
     username: Optional[str] = None
     email: Optional[str] = None
     image_path: Optional[str] = None
+    role: str = "student"
     current_rank: str
     daily_streak: int
     longest_streak: int
@@ -212,6 +213,11 @@ class UserProfileDetail(BaseModel):
     earned_badges: List["BadgeDetail"] = []
     is_following: bool = False
     is_own_profile: bool = False
+    # Tutor-specific fields (populated only when role == "tutor")
+    courses_created: Optional[int] = None
+    avg_course_rating: Optional[float] = None
+    total_unique_students: Optional[int] = None
+    tutor_courses: Optional[List["TutorProfileCourse"]] = None
 
 
 class GetMyProfileResponse(BaseModel):
@@ -314,6 +320,17 @@ class BadgeDetail(BaseModel):
     icon_name: Optional[str] = None
     image_url: Optional[str] = None
     course_id: str
+
+class TutorProfileCourse(BaseModel):
+    id: str
+    name: str
+    description: str
+    avg_rating: Optional[float] = None
+    review_count: int = 0
+    enrollment_count: int = 0
+    badge: Optional[BadgeDetail] = None
+    price_gems: Optional[int] = None
+    discount_percent: Optional[int] = None
 
 class CreateBadgeResponse(BaseModel):
     status: str

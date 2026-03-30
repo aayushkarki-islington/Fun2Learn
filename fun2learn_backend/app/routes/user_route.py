@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
+from sqlalchemy import select, func, distinct
 import logging
 import os
 import uuid
@@ -9,13 +9,13 @@ from app.models.models import TokenUser
 from app.models.request_models import UpdateProfileRequest
 from app.models.response_models import (
     UserResponse, BadgeDetail,
-    UserProfileDetail, GetMyProfileResponse, UpdateProfileResponse,
+    UserProfileDetail, TutorProfileCourse, GetMyProfileResponse, UpdateProfileResponse,
     UploadProfilePictureResponse, FollowResponse,
     GetFollowersResponse, GetFollowingResponse, SearchUsersResponse, UserSummaryDetail
 )
 from app.models.db_models import (
     User, UserInventory, LessonCompletion, Enrollment, UserAchievement,
-    Following, Course, Badge
+    Following, Course, Badge, Feedback
 )
 from app.auth.dependencies import get_current_user
 from app.utils.db_utils import get_db
@@ -122,12 +122,80 @@ def _build_user_profile(target_user: User, viewer_user_id: str, db: Session) -> 
 
     image_url = get_presigned_url_from_path(target_user.image_path, USERS_BUCKET)
 
+    # Tutor-specific stats
+    courses_created = None
+    avg_course_rating = None
+    total_unique_students = None
+    tutor_courses = None
+
+    if target_user.role == "tutor":
+        tutor_courses_db = db.execute(
+            select(Course).where(
+                Course.created_by == target_user.user_id,
+                Course.status == "published"
+            )
+        ).scalars().all()
+
+        courses_created = len(tutor_courses_db)
+        course_ids = [c.id for c in tutor_courses_db]
+
+        if course_ids:
+            total_unique_students = db.execute(
+                select(func.count(distinct(Enrollment.user_id))).where(
+                    Enrollment.course_id.in_(course_ids)
+                )
+            ).scalar_one()
+
+            overall_avg = db.execute(
+                select(func.avg(Feedback.rating)).where(
+                    Feedback.course_id.in_(course_ids)
+                )
+            ).scalar_one()
+            avg_course_rating = round(float(overall_avg), 1) if overall_avg else None
+        else:
+            total_unique_students = 0
+            avg_course_rating = None
+
+        tutor_courses = []
+        for course in tutor_courses_db:
+            course_avg = db.execute(
+                select(func.avg(Feedback.rating)).where(Feedback.course_id == course.id)
+            ).scalar_one()
+            course_review_count = db.execute(
+                select(func.count()).select_from(Feedback).where(Feedback.course_id == course.id)
+            ).scalar_one()
+            course_enrollment_count = db.execute(
+                select(func.count()).select_from(Enrollment).where(Enrollment.course_id == course.id)
+            ).scalar_one()
+            badge_detail = None
+            if course.badge:
+                badge_detail = BadgeDetail(
+                    id=course.badge.id,
+                    name=course.badge.name,
+                    badge_type=course.badge.badge_type,
+                    icon_name=course.badge.icon_name,
+                    image_url=course.badge.image_url,
+                    course_id=course.badge.course_id,
+                )
+            tutor_courses.append(TutorProfileCourse(
+                id=course.id,
+                name=course.name,
+                description=course.description,
+                avg_rating=round(float(course_avg), 1) if course_avg else None,
+                review_count=course_review_count,
+                enrollment_count=course_enrollment_count,
+                badge=badge_detail,
+                price_gems=course.price_gems,
+                discount_percent=course.discount_percent,
+            ))
+
     return UserProfileDetail(
         user_id=target_user.user_id,
         full_name=target_user.full_name,
         username=target_user.username,
         email=target_user.email if viewer_user_id == target_user.user_id else None,
         image_path=image_url,
+        role=target_user.role,
         current_rank=inventory.current_rank if inventory else "bronze",
         daily_streak=inventory.daily_streak if inventory else 0,
         longest_streak=inventory.longest_streak if inventory else 0,
@@ -140,6 +208,10 @@ def _build_user_profile(target_user: User, viewer_user_id: str, db: Session) -> 
         earned_badges=earned_badges,
         is_following=is_following,
         is_own_profile=(viewer_user_id == target_user.user_id),
+        courses_created=courses_created,
+        avg_course_rating=avg_course_rating,
+        total_unique_students=total_unique_students,
+        tutor_courses=tutor_courses,
     )
 
 
