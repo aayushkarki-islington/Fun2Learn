@@ -35,31 +35,40 @@ function getRankConfig(rank: string) {
     return RANK_CONFIG[rank?.toLowerCase()] ?? RANK_CONFIG["bronze"];
 }
 
+function getDefaultAvatar(role: string, gender: string): string {
+    const r = role === "tutor" ? "tutor" : "learner";
+    const g = gender === "female" ? "female" : "male";
+    return `/images/${r}-${g}.png`;
+}
+
 function Avatar({
-    imagePath, fullName, rank, size = "lg", onClick
+    imagePath, fullName, rank, role = "student", gender = "male", size = "lg", onClick
 }: {
     imagePath?: string | null;
     fullName: string;
     rank: string;
+    role?: string;
+    gender?: string;
     size?: "sm" | "md" | "lg";
     onClick?: () => void;
 }) {
     const cfg = getRankConfig(rank);
     const sizeClasses = size === "lg" ? "w-28 h-28 text-4xl" : size === "md" ? "w-14 h-14 text-xl" : "w-10 h-10 text-sm";
     const borderClasses = size === "lg" ? "border-4" : "border-2";
-    const initials = fullName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    const fallback = getDefaultAvatar(role, gender);
+    const isCustomImage = !!imagePath;
+    const [usingFallback, setUsingFallback] = useState(!isCustomImage);
     return (
         <div
             className={`relative ${sizeClasses} rounded-full ${borderClasses} ${cfg.border} overflow-hidden flex-shrink-0 ${onClick ? "cursor-pointer group" : ""}`}
             onClick={onClick}
         >
-            {imagePath ? (
-                <img src={imagePath} alt={fullName} className="w-full h-full object-cover" />
-            ) : (
-                <div className={`w-full h-full flex items-center justify-center font-bold ${cfg.bg} ${cfg.color}`}>
-                    {initials}
-                </div>
-            )}
+            <img
+                src={imagePath || fallback}
+                alt={fullName}
+                className={`w-full h-full object-cover ${usingFallback ? "object-[center_15%]" : ""}`}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallback; setUsingFallback(true); }}
+            />
             {onClick && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera size={size === "lg" ? 24 : 16} className="text-white" />
@@ -596,6 +605,8 @@ const ProfilePage = () => {
                                     imagePath={profile.image_path}
                                     fullName={profile.full_name}
                                     rank={profile.current_rank}
+                                    role={profile.role}
+                                    gender={profile.gender}
                                     size="lg"
                                     onClick={() => fileInputRef.current?.click()}
                                 />

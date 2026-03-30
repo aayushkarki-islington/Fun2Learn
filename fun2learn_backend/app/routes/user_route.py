@@ -196,6 +196,7 @@ def _build_user_profile(target_user: User, viewer_user_id: str, db: Session) -> 
         email=target_user.email if viewer_user_id == target_user.user_id else None,
         image_path=image_url,
         role=target_user.role,
+        gender=target_user.gender or "male",
         current_rank=inventory.current_rank if inventory else "bronze",
         daily_streak=inventory.daily_streak if inventory else 0,
         longest_streak=inventory.longest_streak if inventory else 0,

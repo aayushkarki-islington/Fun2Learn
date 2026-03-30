@@ -201,6 +201,7 @@ class UserProfileDetail(BaseModel):
     email: Optional[str] = None
     image_path: Optional[str] = None
     role: str = "student"
+    gender: str = "male"
     current_rank: str
     daily_streak: int
     longest_streak: int
@@ -348,6 +349,7 @@ class BrowseCourseSummary(BaseModel):
     id: str
     name: str
     description: str
+    tutor_id: str
     tutor_name: str
     unit_count: int
     chapter_count: int

@@ -30,16 +30,30 @@ function getRankConfig(rank: string) {
     return RANK_CONFIG[rank?.toLowerCase()] ?? RANK_CONFIG["bronze"];
 }
 
-function Avatar({ imagePath, fullName, rank }: { imagePath?: string | null; fullName: string; rank: string }) {
+function getDefaultAvatar(role: string, gender: string): string {
+    const r = role === "tutor" ? "tutor" : "learner";
+    const g = gender === "female" ? "female" : "male";
+    return `/images/${r}-${g}.png`;
+}
+
+function Avatar({ imagePath, fullName, rank, role = "student", gender = "male" }: {
+    imagePath?: string | null;
+    fullName: string;
+    rank: string;
+    role?: string;
+    gender?: string;
+}) {
     const cfg = getRankConfig(rank);
-    const initials = fullName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    const fallback = getDefaultAvatar(role, gender);
+    const [usingFallback, setUsingFallback] = useState(!imagePath);
     return (
         <div className={`relative w-28 h-28 rounded-full border-4 ${cfg.border} overflow-hidden flex-shrink-0`}>
-            {imagePath ? (
-                <img src={imagePath} alt={fullName} className="w-full h-full object-cover" />
-            ) : (
-                <div className={`w-full h-full flex items-center justify-center font-bold text-4xl ${cfg.bg} ${cfg.color}`}>{initials}</div>
-            )}
+            <img
+                src={imagePath || fallback}
+                alt={fullName}
+                className={`w-full h-full object-cover ${usingFallback ? "object-[center_15%]" : ""}`}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallback; setUsingFallback(true); }}
+            />
         </div>
     );
 }
@@ -344,7 +358,7 @@ const PublicProfilePage = () => {
                 {/* ── Profile Header ── */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-6 mb-5">
                     <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-                        <Avatar imagePath={profile.image_path} fullName={profile.full_name} rank={profile.current_rank} />
+                        <Avatar imagePath={profile.image_path} fullName={profile.full_name} rank={profile.current_rank} role={profile.role} gender={profile.gender} />
                         <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2 mb-1">
                                 <h1 className="font-lilita text-2xl text-gray-800 dark:text-gray-100 truncate">{profile.full_name}</h1>

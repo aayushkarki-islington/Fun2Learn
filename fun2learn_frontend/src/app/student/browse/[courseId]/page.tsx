@@ -12,6 +12,7 @@ import { getMyEnrolledCourses } from "@/api/studentApi";
 import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
+import Link from "next/link";
 import {
     ArrowLeft, GraduationCap, Users, Star, Gem, BookOpen,
     Layers, FileText, Tag, Award, MessageSquare, Pencil, CheckCircle
@@ -233,7 +234,12 @@ export default function CourseDetailPage() {
                                     {course.name}
                                 </h1>
                                 <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
-                                    by {course.tutor_name}
+                                    by&nbsp;
+                                    <Link
+                                        href={`/users/profile/${course.tutor_id}`}
+                                    >
+                                        {course.tutor_name}
+                                    </Link>
                                 </p>
 
                                 {/* Rating summary inline */}

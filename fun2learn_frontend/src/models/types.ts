@@ -38,6 +38,7 @@ export interface UserProfile {
     email?: string | null;
     image_path?: string | null;
     role: string;
+    gender: string;
     current_rank: string;
     daily_streak: number;
     longest_streak: number;
@@ -170,6 +171,7 @@ export interface BrowseCourseSummary {
     id: string;
     name: string;
     description: string;
+    tutor_id: string;
     tutor_name: string;
     unit_count: number;
     chapter_count: number;
