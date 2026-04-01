@@ -415,6 +415,7 @@ async def enroll_in_course(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already enrolled in this course")
 
         # Handle gem payment for paid courses
+        gems_paid = 0
         if course.price_gems and course.price_gems > 0:
             # Apply discount if set
             if course.discount_percent and 1 <= course.discount_percent <= 99:
@@ -430,6 +431,7 @@ async def enroll_in_course(
                 )
             # Deduct gems from student
             student_inventory.gems -= effective_price
+            gems_paid = effective_price
 
             # Credit 90% to tutor (app takes 10% commission)
             tutor_gems_earned = int(effective_price * 0.9)
@@ -449,7 +451,8 @@ async def enroll_in_course(
         enrollment_id = str(uuid.uuid4())
         new_enrollment = Enrollment(
             id=enrollment_id, user_id=user_id,
-            course_id=course_id, status="active"
+            course_id=course_id, status="active",
+            gems_paid=gems_paid
         )
         db.add(new_enrollment)
 

@@ -160,6 +160,7 @@ class Enrollment(Base):
     user_id = Column(String(40), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     course_id = Column(String(40), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
     status = Column(String(40), server_default="active")
+    gems_paid = Column(Integer, nullable=False, server_default="0")
     enrolled_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     user = relationship("User", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
