@@ -4,7 +4,8 @@ import type {
     StudentQuestion, UserAchievementDetail, NewlyUnlockedAchievement,
     DailyQuest, CompletedQuestInfo, LeaderboardMember, LeaderboardData,
     RedeemRequest, AdminStats, CourseFeedback,
-    UserProfile, UserSummary
+    UserProfile, UserSummary,
+    AnalyticsOverview, CourseAnalytics,
 } from './types';
 
 export interface InitiatePaymentResponse {
@@ -380,4 +381,16 @@ export interface SearchUsersResponse {
     status: string;
     message: string;
     users: UserSummary[];
+}
+
+// ─── Analytics response models ────────────────────────────────────
+
+export interface TutorAnalyticsOverviewResponse extends AnalyticsOverview {
+    status: string;
+    message: string;
+}
+
+export interface TutorCourseAnalyticsResponse extends CourseAnalytics {
+    status: string;
+    message: string;
 }

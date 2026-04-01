@@ -350,3 +350,71 @@ export interface LeaderboardData {
     relegation_zone: number;
     total_members: number;
 }
+
+// ─── Analytics types ──────────────────────────────────────────────
+
+export interface TrendPoint {
+    period: string;
+    count: number;
+}
+
+export interface RevenueTrendPoint {
+    period: string;
+    gems: number;
+}
+
+export interface TopCourse {
+    course_id: string;
+    name: string;
+    enrollments: number;
+    avg_rating: number | null;
+    gems_earned: number;
+}
+
+export interface LessonFunnelItem {
+    lesson_id: string;
+    lesson_name: string;
+    unit_index: number;
+    chapter_index: number;
+    lesson_index: number;
+    completions: number;
+}
+
+export interface ProgressBucket {
+    label: string;
+    count: number;
+}
+
+export interface RecentFeedbackItem {
+    user_name: string;
+    rating: number;
+    comment: string | null;
+    created_at: string;
+}
+
+export interface AnalyticsOverview {
+    total_students: number;
+    total_enrollments: number;
+    avg_rating: number | null;
+    total_gems_earned: number;
+    enrollment_trend: TrendPoint[];
+    revenue_trend: RevenueTrendPoint[];
+    rating_distribution: Record<string, number>;
+    top_courses: TopCourse[];
+}
+
+export interface CourseAnalytics {
+    course_id: string;
+    course_name: string;
+    total_enrolled: number;
+    completed_count: number;
+    completion_rate: number;
+    avg_rating: number | null;
+    total_reviews: number;
+    gems_earned: number;
+    enrollment_trend: TrendPoint[];
+    lesson_funnel: LessonFunnelItem[];
+    progress_distribution: ProgressBucket[];
+    rating_breakdown: Record<string, number>;
+    recent_feedback: RecentFeedbackItem[];
+}
