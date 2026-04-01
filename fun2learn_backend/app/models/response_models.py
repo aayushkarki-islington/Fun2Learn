@@ -655,3 +655,68 @@ class AdminStatsResponse(BaseModel):
     total_courses: int
     total_enrollments: int
     pending_redeem_requests: int
+
+
+# ─── Tutor Analytics response models ─────────────────────────────
+
+class TrendPoint(BaseModel):
+    period: str  # "2026-01"
+    count: int
+
+class RevenueTrendPoint(BaseModel):
+    period: str
+    gems: int
+
+class TopCourse(BaseModel):
+    course_id: str
+    name: str
+    enrollments: int
+    avg_rating: Optional[float]
+    gems_earned: int
+
+class TutorAnalyticsOverviewResponse(BaseModel):
+    status: str
+    message: str
+    total_students: int
+    total_enrollments: int
+    avg_rating: Optional[float]
+    total_gems_earned: int
+    enrollment_trend: List[TrendPoint]
+    revenue_trend: List[RevenueTrendPoint]
+    rating_distribution: dict
+    top_courses: List[TopCourse]
+
+class LessonFunnelItem(BaseModel):
+    lesson_id: str
+    lesson_name: str
+    unit_index: int
+    chapter_index: int
+    lesson_index: int
+    completions: int
+
+class ProgressBucket(BaseModel):
+    label: str
+    count: int
+
+class RecentFeedbackItem(BaseModel):
+    user_name: str
+    rating: int
+    comment: Optional[str]
+    created_at: datetime
+
+class TutorCourseAnalyticsResponse(BaseModel):
+    status: str
+    message: str
+    course_id: str
+    course_name: str
+    total_enrolled: int
+    completed_count: int
+    completion_rate: float
+    avg_rating: Optional[float]
+    total_reviews: int
+    gems_earned: int
+    enrollment_trend: List[TrendPoint]
+    lesson_funnel: List[LessonFunnelItem]
+    progress_distribution: List[ProgressBucket]
+    rating_breakdown: dict
+    recent_feedback: List[RecentFeedbackItem]
