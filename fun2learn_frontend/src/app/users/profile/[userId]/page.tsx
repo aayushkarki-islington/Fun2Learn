@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import type { UserProfile, UserSummary, Badge, TutorProfileCourse } from "@/models/types";
 import { ICON_MAP } from "@/components/prepublish/iconMap";
@@ -321,7 +320,6 @@ const PublicProfilePage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Sidebar />
                 <main className="sidebar-layout max-w-3xl mx-auto px-6 py-8">
                     <div className="animate-pulse space-y-6">
                         <div className="flex gap-6 items-center">
@@ -344,7 +342,6 @@ const PublicProfilePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
             <main className="sidebar-layout max-w-3xl mx-auto px-6 py-8">
 
                 <button

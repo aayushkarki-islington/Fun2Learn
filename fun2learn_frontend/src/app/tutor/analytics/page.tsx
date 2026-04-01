@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Gem, Users, BookOpen, Star, TrendingUp, ChevronDown, Loader2 } from "lucide-react";
-import Sidebar from "@/components/ui/sidebar";
 import { getAnalyticsOverview, getCourseAnalytics } from "@/api/analyticsApi";
 import { getCourses } from "@/api/courseApi";
 import type { AnalyticsOverview, CourseAnalytics, CourseSummary } from "@/models/types";
@@ -439,7 +438,6 @@ export default function TutorAnalyticsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
             <main className="sidebar-layout p-6 lg:p-8">
                 <h1 className="font-lilita text-4xl text-gray-800 dark:text-gray-100 mb-1">Analytics</h1>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">

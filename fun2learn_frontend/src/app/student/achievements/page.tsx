@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { UserAchievementDetail, AchievementType } from "@/models/types";
 import { getAchievements } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import AchievementCard from "@/components/student/achievementCard";
 import { BookOpen, Flame, Trophy, GraduationCap } from "lucide-react";
 
@@ -70,8 +69,6 @@ const AchievementsPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 {/* Header */}
                 <div className="mb-8">

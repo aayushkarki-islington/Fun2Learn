@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -311,8 +310,6 @@ const MarketplacePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             <main className="sidebar-layout max-w-4xl mx-auto px-6 py-8">
                 {/* Header */}
                 <div className="mb-8">

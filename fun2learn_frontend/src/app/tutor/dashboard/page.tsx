@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CourseSummary } from "@/models/types";
 import { getCourses, createCourse, deleteCourse } from "@/api/courseApi";
-import Sidebar from "@/components/ui/sidebar";
 import StatCard from "@/components/ui/statCard";
 import CourseCard from "@/components/ui/courseCard";
 import Modal from "@/components/ui/modal";
@@ -86,8 +85,6 @@ const TutorDashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             {/* Main Content */}
             <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 {/* Top Section */}

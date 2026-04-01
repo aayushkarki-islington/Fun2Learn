@@ -4,7 +4,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, ArrowRight, Loader2, Send, Save, Gem, Info } from "lucide-react";
 import { toast } from "sonner";
-import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import StepIndicator from "@/components/prepublish/stepIndicator";
 import TagSelector from "@/components/prepublish/tagSelector";
@@ -224,7 +223,6 @@ const PrepublishPage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-                <Sidebar />
                 <div className="sidebar-layout flex items-center justify-center py-32">
                     <Loader2 size={48} className="animate-spin text-blue-500" />
                 </div>
@@ -238,8 +236,6 @@ const PrepublishPage = () => {
 
     return (
         <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-            <Sidebar />
-
             {/* Header Bar */}
             <div className="sidebar-layout bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
                 <div className="max-w-3xl mx-auto px-6 py-4">

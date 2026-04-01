@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import type { BrowseCourseSummary, Tag } from "@/models/types";
 import { getBrowseCourses, getMyEnrolledCourses } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import BrowseCourseCard from "@/components/student/browseCourseCard";
 import Button from "@/components/ui/button";
 import { Search, Gem, SlidersHorizontal, X, ChevronDown } from "lucide-react";
@@ -124,8 +123,6 @@ const BrowsePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">

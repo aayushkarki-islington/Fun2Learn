@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { DailyQuest } from "@/models/types";
 import { getDailyQuests } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import { BookOpen, Zap, Flame, Gem, CheckCircle2, RefreshCw } from "lucide-react";
 
 const QUEST_ICONS: Record<string, React.ReactNode> = {
@@ -141,8 +140,6 @@ const QuestsPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             <main className="sidebar-layout max-w-3xl mx-auto px-6 py-8">
                 {/* Header */}
                 <div className="mb-8">

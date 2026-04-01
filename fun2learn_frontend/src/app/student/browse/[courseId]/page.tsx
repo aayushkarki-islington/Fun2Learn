@@ -9,7 +9,6 @@ import {
     submitCourseFeedback, enrollInCourse, getStreak
 } from "@/api/studentApi";
 import { getMyEnrolledCourses } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
 import Link from "next/link";
@@ -187,7 +186,6 @@ export default function CourseDetailPage() {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Sidebar />
                 <div className="sidebar-layout flex items-center justify-center py-32">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
                 </div>
@@ -209,8 +207,6 @@ export default function CourseDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 {/* Back */}
                 <button

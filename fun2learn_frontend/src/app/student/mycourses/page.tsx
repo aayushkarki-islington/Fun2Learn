@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { EnrolledCourseSummary } from "@/models/types";
 import { getMyEnrolledCourses } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import StatCard from "@/components/ui/statCard";
 import StudentCourseCard from "@/components/student/studentCourseCard";
 import Button from "@/components/ui/button";
@@ -41,8 +40,6 @@ const MyCoursesPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             <main className="sidebar-layout max-w-7xl mx-auto px-6 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <div>

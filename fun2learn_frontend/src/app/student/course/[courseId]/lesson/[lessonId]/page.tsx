@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { StudentQuestion, LessonAttachment, NewlyUnlockedAchievement, DailyQuest } from "@/models/types";
 import { getStudentLesson, submitAnswer, completeLesson } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import QuestionCard from "@/components/student/questionCard";
 import StreakModal from "@/components/student/streakModal";
 import AchievementUnlockToast from "@/components/student/achievementUnlockToast";
@@ -99,7 +98,6 @@ const LessonPage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Sidebar />
                 <div className="sidebar-layout flex items-center justify-center py-20">
                     <div className="text-center">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
@@ -112,8 +110,6 @@ const LessonPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             {/* Lesson header */}
             <div className="sidebar-layout bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
                 <div className="max-w-3xl mx-auto px-6 py-4">

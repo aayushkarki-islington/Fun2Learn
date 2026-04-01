@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Gem, Loader2, ArrowLeft, CircleCheck, Clock, XCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import { getTutorInventory, createRedeemRequest, getTutorRedeemRequests } from "@/api/tutorApi";
 import type { RedeemRequest } from "@/models/types";
@@ -86,7 +85,6 @@ const RedeemPage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-                <Sidebar />
                 <div className="sidebar-layout flex items-center justify-center py-32">
                     <Loader2 size={48} className="animate-spin text-blue-500" />
                 </div>
@@ -96,7 +94,6 @@ const RedeemPage = () => {
 
     return (
         <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-            <Sidebar />
             <div className="sidebar-layout max-w-3xl mx-auto px-6 py-10 space-y-8">
 
                 {/* Header */}

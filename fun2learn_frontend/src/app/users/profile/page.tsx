@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/ui/sidebar";
 import Button from "@/components/ui/button";
 import type { UserProfile, UserSummary, Badge, TutorProfileCourse } from "@/models/types";
 import {
@@ -562,7 +561,6 @@ const ProfilePage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Sidebar />
                 <main className="sidebar-layout max-w-3xl mx-auto px-6 py-8">
                     <div className="animate-pulse space-y-6">
                         <div className="flex gap-6 items-center">
@@ -589,7 +587,6 @@ const ProfilePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
             <main className="sidebar-layout max-w-3xl mx-auto px-6 py-8">
 
                 {/* ── Profile Header ── */}

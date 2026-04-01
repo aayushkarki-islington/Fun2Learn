@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import type { LeaderboardMember, LeaderboardRank } from "@/models/types";
 import { getLeaderboard } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import { Trophy, Star, ChevronUp, ChevronDown, Minus, Crown, Zap } from "lucide-react";
 
 // ─── Rank config ────────────────────────────────────────
@@ -280,8 +279,6 @@ const LeaderboardsPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             <main className="sidebar-layout max-w-2xl mx-auto px-6 py-8">
                 {/* Header */}
                 <div className="mb-8">

@@ -127,11 +127,11 @@ body {
 
 /* Sidebar layout */
 .sidebar-layout {
-  padding-left: 220px;
+  padding-left: 236px;
 }
 
 @media (max-width: 1023px) {
   .sidebar-layout {
-    padding-left: 0;
+    padding-left: 24px;
   }
 }

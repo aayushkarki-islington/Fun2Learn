@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { StudentCourseDetail } from "@/models/types";
 import { getStudentCourseDetail } from "@/api/studentApi";
-import Sidebar from "@/components/ui/sidebar";
 import StudentUnitHeader from "@/components/student/studentUnitHeader";
 import StudentChapterCard from "@/components/student/studentChapterCard";
 import ProgressBar from "@/components/student/progressBar";
@@ -46,7 +45,6 @@ const StudentCoursePage = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Sidebar />
                 <div className="sidebar-layout flex items-center justify-center py-20">
                     <div className="text-center">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
@@ -60,7 +58,6 @@ const StudentCoursePage = () => {
     if (!course) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Sidebar />
                 <div className="sidebar-layout text-center py-20">
                     <p className="text-gray-600 dark:text-gray-400">Course not found</p>
                     <Button onClick={() => router.push('/student/mycourses')} variant="primary" className="mt-4">
@@ -73,8 +70,6 @@ const StudentCoursePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-
             {/* Course header */}
             <div className="sidebar-layout bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
                 <div className="max-w-4xl mx-auto px-6 py-4">
