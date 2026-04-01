@@ -895,6 +895,7 @@ async def complete_lesson(
             progress.current_chapter_id = None
             progress.current_unit_id = None
             enrollment.status = "completed"
+            enrollment.completed_at = datetime.now(timezone.utc)
 
         # Update streak and award XP
         inventory = _get_or_create_inventory(user_id, db)

@@ -162,6 +162,7 @@ class Enrollment(Base):
     status = Column(String(40), server_default="active")
     gems_paid = Column(Integer, nullable=False, server_default="0")
     enrolled_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    completed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     user = relationship("User", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
 
