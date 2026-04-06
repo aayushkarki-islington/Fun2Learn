@@ -97,6 +97,7 @@ def get_application():
         'http://localhost:3001',
         'http://localhost:3002',
         'http://localhost:3003',
+        "https://main.d2826nkxpr52kp.amplifyapp.com/"
     ]
 
     _app.add_middleware(

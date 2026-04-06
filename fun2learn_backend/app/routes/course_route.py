@@ -33,7 +33,7 @@ import logging
 from sqlalchemy import select, func, desc
 from app.models.db_models import Course, Unit, Chapter, Lesson, Question, MCQOption, TextAnswer, LessonAttachment, Tag, CourseTag, Badge
 from app.utils.exceptions import UnauthorizedUserException, NotFoundException, ExistingResourceException
-from app.utils.boto3_utils import upload_file_to_s3, delete_file_from_s3
+from app.utils.boto3_utils import upload_file_to_s3, delete_file_from_s3, get_presigned_url_from_path
 import uuid
 import os
 
@@ -1346,7 +1346,7 @@ async def upload_lesson_attachment(
             message="Attachment uploaded successfully",
             attachment_id=attachment_id,
             file_name=file.filename,
-            s3_url=s3_url
+            s3_url=get_presigned_url_from_path(s3_url, s3_bucket)
         )
 
     except HTTPException:
@@ -1379,11 +1379,12 @@ async def get_lesson_attachments(
         attachments_stmt = select(LessonAttachment).where(LessonAttachment.lesson_id == lesson_id).order_by(LessonAttachment.created_at)
         attachments = db.execute(attachments_stmt).scalars().all()
 
+        s3_bucket = os.getenv('AWS_S3_BUCKET_NAME', 'fun2learn-attachments')
         attachment_details = [
             LessonAttachmentDetail(
                 id=attachment.id,
                 file_name=attachment.file_name,
-                s3_url=attachment.s3_url,
+                s3_url=get_presigned_url_from_path(attachment.s3_url, s3_bucket),
                 created_at=attachment.created_at
             )
             for attachment in attachments

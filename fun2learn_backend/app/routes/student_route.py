@@ -29,8 +29,10 @@ from app.models.db_models import (
 )
 from app.utils.leaderboard_utils import RANKS, LEADERBOARD_MAX_SIZE, PROMOTION_COUNT, RELEGATION_COUNT, get_current_week_bounds
 from app.utils.exceptions import NotFoundException
+from app.utils.boto3_utils import get_presigned_url_from_path
 from datetime import date, timedelta, datetime, timezone
 import uuid
+import os
 
 _SHOW_NAME = "student"
 router = APIRouter(
@@ -746,10 +748,12 @@ async def get_student_lesson(
             questions.append(q_detail)
 
         # Build attachments
+        s3_bucket = os.getenv('AWS_S3_BUCKET_NAME', 'fun2learn-attachments')
         attachments = [
             LessonAttachmentDetail(
                 id=att.id, file_name=att.file_name,
-                s3_url=att.s3_url, created_at=att.created_at
+                s3_url=get_presigned_url_from_path(att.s3_url, s3_bucket),
+                created_at=att.created_at
             )
             for att in lesson.lesson_attachments
         ]

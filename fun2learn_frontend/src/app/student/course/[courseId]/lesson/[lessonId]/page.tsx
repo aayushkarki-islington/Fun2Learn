@@ -9,7 +9,8 @@ import QuestionCard from "@/components/student/questionCard";
 import StreakModal from "@/components/student/streakModal";
 import AchievementUnlockToast from "@/components/student/achievementUnlockToast";
 import Button from "@/components/ui/button";
-import { ArrowLeft, Download, CheckCircle, ArrowRight, Trophy } from "lucide-react";
+import AttachmentViewerModal from "@/components/student/attachmentViewerModal";
+import { ArrowLeft, FileText, CheckCircle, ArrowRight, Trophy } from "lucide-react";
 import { useUser } from "@/context/user-context";
 
 const LessonPage = () => {
@@ -34,6 +35,7 @@ const LessonPage = () => {
     const [questProgress, setQuestProgress] = useState<DailyQuest[]>([]);
     const [gemsEarned, setGemsEarned] = useState(0);
     const [achievementQueue, setAchievementQueue] = useState<NewlyUnlockedAchievement[]>([]);
+    const [viewingAttachment, setViewingAttachment] = useState<import("@/models/types").LessonAttachment | null>(null);
 
     useEffect(() => {
         loadLesson();
@@ -134,16 +136,14 @@ const LessonPage = () => {
                         <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-3">Lesson Materials</h3>
                         <div className="space-y-2">
                             {attachments.map(att => (
-                                <a
+                                <button
                                     key={att.id}
-                                    href={att.s3_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                    onClick={() => setViewingAttachment(att)}
+                                    className="w-full flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-left"
                                 >
-                                    <Download size={18} className="text-blue-600 dark:text-blue-400" />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">{att.file_name}</span>
-                                </a>
+                                    <FileText size={18} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{att.file_name}</span>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -252,6 +252,11 @@ const LessonPage = () => {
             <AchievementUnlockToast
                 queue={achievementQueue}
                 onDismissFirst={handleDismissAchievement}
+            />
+
+            <AttachmentViewerModal
+                attachment={viewingAttachment}
+                onClose={() => setViewingAttachment(null)}
             />
         </div>
     );
