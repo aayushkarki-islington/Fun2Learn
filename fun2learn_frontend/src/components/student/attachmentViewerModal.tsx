@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ComponentType } from "react";
 import { X, FileText, File } from "lucide-react";
 import type { LessonAttachment } from "@/models/types";
 
@@ -104,7 +104,7 @@ function DocViewer({ url, fileName }: { url: string; fileName: string }) {
     useEffect(() => {
         import("@cyntler/react-doc-viewer")
             .then((mod) => {
-                setDocViewerComponent(() => mod.default);
+                setDocViewerComponent(mod.default as unknown as ComponentType<any>);
                 setRenderers(mod.DocViewerRenderers ?? []);
             })
             .catch(() => setImportError(true));
