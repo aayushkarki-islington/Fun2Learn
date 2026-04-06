@@ -88,8 +88,8 @@ def get_application():
     )
 
     # Run this after creating a new table in db_models.py
-    # logger.info("Ensuring all the tables are created")
-    # ensure_create_all()
+    logger.info("Ensuring all the tables are created")
+    ensure_create_all()
 
     # Add CORS middleware last so it executes first and adds headers to all responses
     origins = [
