@@ -91,23 +91,6 @@ def get_application():
     logger.info("Ensuring all the tables are created")
     ensure_create_all()
 
-    # Add CORS middleware last so it executes first and adds headers to all responses
-    origins = [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3002',
-        'http://localhost:3003',
-        "https://main.d2826nkxpr52kp.amplifyapp.com"
-    ]
-
-    _app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
     @_app.middleware('http')
     async def auth_middleware(request: Request, call_next):
         """
@@ -144,6 +127,22 @@ def get_application():
             # Non-API routes (static files, etc.)
             return await call_next(request)
 
+    # Add CORS middleware after auth_middleware so it is the outermost layer
+    origins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+        'http://localhost:3003',
+        "https://main.d2826nkxpr52kp.amplifyapp.com"
+    ]
+
+    _app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @_app.get("/")
     async def root():
