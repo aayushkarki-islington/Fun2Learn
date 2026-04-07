@@ -24,7 +24,7 @@ const LessonCircle = ({ lesson, onEdit, onDelete, onQuestions }: LessonCirclePro
 
     return (
         <div className="flex items-center gap-4">
-            <div className="lesson-circle relative group cursor-pointer pr-20">
+            <div className="lesson-circle relative group cursor-pointer pr-4">
                 <div className="relative w-16 h-16">
                     <div
                         className={`w-16 h-16 rounded-full ${bgColor} border-4 ${borderColor} flex items-center justify-center shadow-lg`}
