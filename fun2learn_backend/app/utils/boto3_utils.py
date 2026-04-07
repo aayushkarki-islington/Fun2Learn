@@ -97,7 +97,7 @@ def upload_file_to_s3(
         )
 
         # Generate S3 URL
-        s3_url = f"https://{bucket_name}.s3.amazonaws.com/{s3_key}"
+        s3_url = f"https://{bucket_name}.s3.{os.getenv('AWS_REGION')}.amazonaws.com/{s3_key}"
 
         logger.info(f"File uploaded successfully to S3: {s3_url}")
 

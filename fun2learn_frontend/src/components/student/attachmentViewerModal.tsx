@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, ComponentType } from "react";
-import { X, FileText, File } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, FileText } from "lucide-react";
 import type { LessonAttachment } from "@/models/types";
 
 const IMAGE_EXTS = new Set(["jpg", "jpeg", "png", "gif", "svg", "webp"]);
 const VIDEO_EXTS = new Set(["mp4", "mov", "avi", "webm"]);
 const AUDIO_EXTS = new Set(["mp3", "wav", "ogg"]);
-const DOC_EXTS = new Set(["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "csv", "txt"]);
+const OFFICE_EXTS = new Set(["doc", "docx", "ppt", "pptx", "xls", "xlsx"]);
 
 function getExtension(filename: string): string {
     return filename.split(".").pop()?.toLowerCase() ?? "";
@@ -90,54 +90,15 @@ function CsvPreview({ url }: { url: string }) {
     );
 }
 
-function DocViewer({ url, fileName }: { url: string; fileName: string }) {
-    // Dynamically import @cyntler/react-doc-viewer to avoid SSR issues
-    const [DocViewerComponent, setDocViewerComponent] = useState<React.ComponentType<{
-        documents: { uri: string; fileName?: string }[];
-        pluginRenderers: unknown[];
-        style?: React.CSSProperties;
-        config?: { header: { disableHeader: boolean } };
-    }> | null>(null);
-    const [renderers, setRenderers] = useState<unknown[]>([]);
-    const [importError, setImportError] = useState(false);
 
-    useEffect(() => {
-        import("@cyntler/react-doc-viewer")
-            .then((mod) => {
-                setDocViewerComponent(mod.default as unknown as ComponentType<any>);
-                setRenderers(mod.DocViewerRenderers ?? []);
-            })
-            .catch(() => setImportError(true));
-    }, []);
 
-    if (importError) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-                <File size={48} className="text-gray-400" />
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Document preview unavailable.
-                </p>
-                <p className="text-gray-400 dark:text-gray-500 text-xs">
-                    Run{" "}
-                    <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                        npm install @cyntler/react-doc-viewer --legacy-peer-deps
-                    </code>{" "}
-                    to enable office document previews.
-                </p>
-            </div>
-        );
-    }
-
-    if (!DocViewerComponent) {
-        return <p className="text-gray-500 text-sm">Loading document viewer...</p>;
-    }
-
+function OfficeViewer({ url, fileName }: { url: string; fileName: string }) {
+    const src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
     return (
-        <DocViewerComponent
-            documents={[{ uri: url, fileName }]}
-            pluginRenderers={renderers}
-            style={{ height: "100%", width: "100%" }}
-            config={{ header: { disableHeader: true } }}
+        <iframe
+            src={src}
+            className="w-full h-full rounded-lg border-0"
+            title={fileName}
         />
     );
 }
@@ -204,8 +165,8 @@ function AttachmentContent({ attachment }: { attachment: LessonAttachment }) {
         return <CsvPreview url={url} />;
     }
 
-    if (DOC_EXTS.has(ext)) {
-        return <DocViewer url={url} fileName={attachment.file_name} />;
+    if (OFFICE_EXTS.has(ext)) {
+        return <OfficeViewer url={url} fileName={attachment.file_name} />;
     }
 
     return (
