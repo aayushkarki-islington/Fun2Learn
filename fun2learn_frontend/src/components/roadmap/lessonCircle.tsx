@@ -24,15 +24,17 @@ const LessonCircle = ({ lesson, onEdit, onDelete, onQuestions }: LessonCirclePro
 
     return (
         <div className="flex items-center gap-4">
-            <div className="lesson-circle relative group cursor-pointer">
-                <div
-                    className={`w-16 h-16 rounded-full ${bgColor} border-4 ${borderColor} flex items-center justify-center shadow-lg`}
-                    onClick={onQuestions}
-                >
-                    <Icon size={24} className={iconColor} />
-                </div>
-                <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full ${badgeColor} text-white text-xs flex items-center justify-center font-bold`}>
-                    {lesson.question_count}
+            <div className="lesson-circle relative group cursor-pointer pr-20">
+                <div className="relative w-16 h-16">
+                    <div
+                        className={`w-16 h-16 rounded-full ${bgColor} border-4 ${borderColor} flex items-center justify-center shadow-lg`}
+                        onClick={onQuestions}
+                    >
+                        <Icon size={24} className={iconColor} />
+                    </div>
+                    <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full ${badgeColor} text-white text-xs flex items-center justify-center font-bold`}>
+                        {lesson.question_count}
+                    </div>
                 </div>
 
                 {/* Hover action menu */}
