@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Flame, BookOpen, Zap, CheckCircle2, Gem } from "lucide-react";
+import { Flame, BookOpen, Zap, CheckCircle2, Gem, Star } from "lucide-react";
 import Button from "@/components/ui/button";
 import type { DailyQuest } from "@/models/types";
 
@@ -134,9 +134,17 @@ const StreakModal = ({ isOpen, onClose, streakCount, streakUpdated = true, quest
                                                 <span className={`text-xs font-bold truncate ${quest.completed ? "text-green-700 dark:text-green-400" : "text-gray-700 dark:text-gray-300"}`}>
                                                     {quest.title}
                                                 </span>
-                                                <div className="flex items-center gap-1 ml-2 shrink-0">
-                                                    <Gem size={11} className="text-yellow-500" fill="currentColor" />
-                                                    <span className="text-xs font-bold text-yellow-600 dark:text-yellow-400">{quest.gems}</span>
+                                                <div className="flex items-center gap-2 ml-2 shrink-0">
+                                                    <div className="flex items-center gap-0.5">
+                                                        <Gem size={11} className="text-yellow-500" fill="currentColor" />
+                                                        <span className="text-xs font-bold text-yellow-600 dark:text-yellow-400">{quest.gems}</span>
+                                                    </div>
+                                                    {(quest.xp ?? 0) > 0 && (
+                                                        <div className="flex items-center gap-0.5">
+                                                            <Star size={11} className="text-blue-500" fill="currentColor" />
+                                                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{quest.xp} XP</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="h-1.5 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden">

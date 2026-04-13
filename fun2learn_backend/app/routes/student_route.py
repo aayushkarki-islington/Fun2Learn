@@ -136,6 +136,7 @@ DAILY_QUEST_DEFINITIONS = [
         "quest_type": "streak_today",
         "goal": 1,
         "gems": 15,
+        "xp": 30,
     },
     {
         "key": "complete_3_lessons",
@@ -145,6 +146,7 @@ DAILY_QUEST_DEFINITIONS = [
         "quest_type": "lessons_today",
         "goal": 3,
         "gems": 20,
+        "xp": 50,
     },
     {
         "key": "complete_5_lessons",
@@ -153,7 +155,8 @@ DAILY_QUEST_DEFINITIONS = [
         "icon": "book-open",
         "quest_type": "lessons_today",
         "goal": 5,
-        "gems": 30,
+        "gems": 5,
+        "xp": 0,
     },
 ]
 
@@ -186,15 +189,17 @@ def _update_daily_quests(
     user_id: str,
     lessons_today: int,
     inventory: UserInventory,
+    lb_entry,
     db: Session,
-) -> tuple[list[CompletedQuestInfo], int, list[DailyQuestDetail]]:
+) -> tuple[list[CompletedQuestInfo], int, list[DailyQuestDetail], int]:
     """
     Update daily quest progress based on today's lesson count and streak status.
-    Returns (newly_completed_quests, gems_earned, all_quest_details).
+    Returns (newly_completed_quests, gems_earned, all_quest_details, xp_earned).
     """
     today = date.today()
     newly_completed: list[CompletedQuestInfo] = []
     gems_earned = 0
+    xp_earned = 0
     all_details: list[DailyQuestDetail] = []
 
     for qdef in DAILY_QUEST_DEFINITIONS:
@@ -206,7 +211,7 @@ def _update_daily_quests(
             if inventory.last_streak_recorded == today:
                 qp.progress = 1
 
-        # Award gems for newly completed quests
+        # Award gems and XP for newly completed quests
         was_completed = qp.completed
         if qp.progress >= qdef["goal"]:
             qp.completed = True
@@ -214,11 +219,17 @@ def _update_daily_quests(
             qp.gems_claimed = True
             inventory.gems += qdef["gems"]
             gems_earned += qdef["gems"]
+            quest_xp = qdef.get("xp", 0)
+            if quest_xp > 0 and lb_entry is not None:
+                lb_entry.xp_earned += quest_xp
+                inventory.experience_points += quest_xp
+                xp_earned += quest_xp
             if not was_completed:
                 newly_completed.append(CompletedQuestInfo(
                     key=qdef["key"],
                     title=qdef["title"],
                     gems=qdef["gems"],
+                    xp=quest_xp,
                 ))
 
         all_details.append(DailyQuestDetail(
@@ -229,11 +240,12 @@ def _update_daily_quests(
             quest_type=qdef["quest_type"],
             goal=qdef["goal"],
             gems=qdef["gems"],
+            xp=qdef.get("xp", 0),
             progress=qp.progress,
             completed=qp.completed,
         ))
 
-    return newly_completed, gems_earned, all_details
+    return newly_completed, gems_earned, all_details, xp_earned
 
 
 def _update_achievement_progress(
@@ -905,56 +917,56 @@ async def complete_lesson(
         inventory = _get_or_create_inventory(user_id, db)
         streak_updated = _update_streak(inventory, user_id, db)
 
-        xp_earned = 0
-        if is_new_completion:
-            xp_earned = 30
-            inventory.experience_points += xp_earned
-
-            # Update leaderboard XP — auto-join if not yet assigned this week
-            week_start, week_end = get_current_week_bounds()
-            lb_entry = db.execute(
-                select(LeaderboardEntry)
-                .join(Leaderboard)
-                .where(
-                    LeaderboardEntry.user_id == user_id,
+        # Fetch/create leaderboard entry (needed for both lesson XP and quest XP)
+        week_start, week_end = get_current_week_bounds()
+        lb_entry = db.execute(
+            select(LeaderboardEntry)
+            .join(Leaderboard)
+            .where(
+                LeaderboardEntry.user_id == user_id,
+                Leaderboard.status == "open",
+                Leaderboard.week_start >= week_start,
+                Leaderboard.week_start < week_end,
+            )
+        ).scalar_one_or_none()
+        if not lb_entry:
+            user_rank = inventory.current_rank if inventory.current_rank in RANKS else RANKS[0]
+            candidates = db.execute(
+                select(Leaderboard).where(
+                    Leaderboard.rank == user_rank,
                     Leaderboard.status == "open",
                     Leaderboard.week_start >= week_start,
                     Leaderboard.week_start < week_end,
                 )
-            ).scalar_one_or_none()
-            if not lb_entry:
-                user_rank = inventory.current_rank if inventory.current_rank in RANKS else RANKS[0]
-                candidates = db.execute(
-                    select(Leaderboard).where(
-                        Leaderboard.rank == user_rank,
-                        Leaderboard.status == "open",
-                        Leaderboard.week_start >= week_start,
-                        Leaderboard.week_start < week_end,
-                    )
-                ).scalars().all()
-                lb = None
-                for candidate in candidates:
-                    if len(candidate.entries) < LEADERBOARD_MAX_SIZE:
-                        lb = candidate
-                        break
-                if not lb:
-                    lb = Leaderboard(
-                        id=str(uuid.uuid4()),
-                        rank=user_rank,
-                        status="open",
-                        week_start=week_start,
-                        week_end=week_end,
-                    )
-                    db.add(lb)
-                    db.flush()
-                lb_entry = LeaderboardEntry(
+            ).scalars().all()
+            lb = None
+            for candidate in candidates:
+                if len(candidate.entries) < LEADERBOARD_MAX_SIZE:
+                    lb = candidate
+                    break
+            if not lb:
+                lb = Leaderboard(
                     id=str(uuid.uuid4()),
-                    leaderboard_id=lb.id,
-                    user_id=user_id,
-                    xp_earned=0,
+                    rank=user_rank,
+                    status="open",
+                    week_start=week_start,
+                    week_end=week_end,
                 )
-                db.add(lb_entry)
+                db.add(lb)
                 db.flush()
+            lb_entry = LeaderboardEntry(
+                id=str(uuid.uuid4()),
+                leaderboard_id=lb.id,
+                user_id=user_id,
+                xp_earned=0,
+            )
+            db.add(lb_entry)
+            db.flush()
+
+        xp_earned = 0
+        if is_new_completion:
+            xp_earned = 30
+            inventory.experience_points += xp_earned
             lb_entry.xp_earned += xp_earned
 
         # Track achievement progress (only on new completions)
@@ -992,9 +1004,10 @@ async def complete_lesson(
                 func.date(LessonCompletion.completed_at) == today,
             )
         ).scalar_one()
-        newly_completed_quests, gems_earned, quest_progress = _update_daily_quests(
-            user_id, lessons_today, inventory, db
+        newly_completed_quests, gems_earned, quest_progress, quest_xp = _update_daily_quests(
+            user_id, lessons_today, inventory, lb_entry, db
         )
+        xp_earned += quest_xp
 
         db.commit()
 
@@ -1096,6 +1109,7 @@ async def get_daily_quests(
                 quest_type=qdef["quest_type"],
                 goal=qdef["goal"],
                 gems=qdef["gems"],
+                xp=qdef.get("xp", 0),
                 progress=qp.progress if qp else 0,
                 completed=qp.completed if qp else False,
             ))

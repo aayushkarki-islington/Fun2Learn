@@ -1,0 +1,70 @@
+<html>
+<head>
+    <title>Fun2Learn Payment Test Form</title>
+</head>
+<body>
+    <h3>Sample payment Form</h3>
+
+    <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST" 
+          style="display: flex; flex-direction: column; gap: 10px; max-width: 500px;">
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Amount:</label>
+            <input type="text" name="amount" value="200" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Tax Amount:</label>
+            <input type="text" name="tax_amount" value="0" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Total Amount:</label>
+            <input type="text" name="total_amount" value="200" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Transaction UUID:</label>
+            <input type="text" name="transaction_uuid" value="788996c0-60b5-48cd-b874-c38e5c3c570a" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Product Code:</label>
+            <input type="text" name="product_code" value="EPAYTEST" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Service Charge:</label>
+            <input type="text" name="product_service_charge" value="0" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Delivery Charge:</label>
+            <input type="text" name="product_delivery_charge" value="0" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Success URL:</label>
+            <input type="text" name="success_url" value="http://localhost:8000/api/payment/success" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Failure URL:</label>
+            <input type="text" name="failure_url" value="http://localhost:8000/api/payment/failure" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Signed Fields:</label>
+            <input type="text" name="signed_field_names" value="total_amount,transaction_uuid,product_code" required style="flex: 1;">
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <label style="width: 180px;">Signature:</label>
+            <input type="text" name="signature" value="Gdkjz0PuZyAMdJKADohP2yJq0liw1qBy18eB1d5jV+M=" required style="flex: 1;">
+        </div>
+
+        <input type="submit" value="Pay with esewa"
+               style="background-color: #60BB46; color: white; height: 40px; width: 160px; margin-top: 10px;">
+    </form>
+</body>
+</html>

@@ -88,8 +88,8 @@ def get_application():
     )
 
     # Run this after creating a new table in db_models.py
-    logger.info("Ensuring all the tables are created")
-    ensure_create_all()
+    # logger.info("Ensuring all the tables are created")
+    # ensure_create_all()
 
     @_app.middleware('http')
     async def auth_middleware(request: Request, call_next):

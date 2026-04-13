@@ -492,6 +492,7 @@ class CompletedQuestInfo(BaseModel):
     key: str
     title: str
     gems: int
+    xp: int = 0
 
 
 class DailyQuestDetail(BaseModel):
@@ -502,6 +503,7 @@ class DailyQuestDetail(BaseModel):
     quest_type: str
     goal: int
     gems: int
+    xp: int = 0
     progress: int
     completed: bool
 

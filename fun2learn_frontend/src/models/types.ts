@@ -317,6 +317,7 @@ export interface DailyQuest {
     quest_type: QuestType;
     goal: number;
     gems: number;
+    xp?: number;
     progress: number;
     completed: boolean;
 }
@@ -325,6 +326,7 @@ export interface CompletedQuestInfo {
     key: string;
     title: string;
     gems: number;
+    xp?: number;
 }
 
 // ─── Leaderboard types ──────────────────────────────────

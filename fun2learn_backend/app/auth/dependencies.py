@@ -35,6 +35,6 @@ def require_role(*roles: str) -> TokenUser:
     """
     def checker(user: TokenUser = Depends(get_current_user)):
         if user.role not in roles:
-            raise HTTPException(status_code=403, detail="You need a tutor account to upload courses.")
+            raise HTTPException(status_code=403, detail="Your account is not authorized to perform this operation.")
         return user
     return checker

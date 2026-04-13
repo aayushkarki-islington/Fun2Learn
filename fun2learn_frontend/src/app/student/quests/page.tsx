@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { DailyQuest } from "@/models/types";
 import { getDailyQuests } from "@/api/studentApi";
-import { BookOpen, Zap, Flame, Gem, CheckCircle2, RefreshCw } from "lucide-react";
+import { BookOpen, Zap, Flame, Gem, CheckCircle2, RefreshCw, Star } from "lucide-react";
 
 const QUEST_ICONS: Record<string, React.ReactNode> = {
     "book-open": <BookOpen size={22} />,
@@ -95,20 +95,38 @@ const QuestCard = ({ quest }: { quest: DailyQuest }) => {
                 </div>
             </div>
 
-            {/* Gems reward */}
-            <div className={`mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg w-fit ${
-                quest.completed
-                    ? "bg-green-50 dark:bg-green-900/20"
-                    : "bg-yellow-50 dark:bg-yellow-900/10"
-            }`}>
-                <Gem
-                    size={14}
-                    className={quest.completed ? "text-green-500" : "text-yellow-500"}
-                    fill="currentColor"
-                />
-                <span className={`text-xs font-bold ${quest.completed ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}>
-                    {quest.completed ? `+${quest.gems} earned` : `${quest.gems} gems`}
-                </span>
+            {/* Rewards */}
+            <div className="mt-4 flex items-center gap-2 flex-wrap">
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${
+                    quest.completed
+                        ? "bg-green-50 dark:bg-green-900/20"
+                        : "bg-yellow-50 dark:bg-yellow-900/10"
+                }`}>
+                    <Gem
+                        size={14}
+                        className={quest.completed ? "text-green-500" : "text-yellow-500"}
+                        fill="currentColor"
+                    />
+                    <span className={`text-xs font-bold ${quest.completed ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}>
+                        {quest.completed ? `+${quest.gems} earned` : `${quest.gems} gems`}
+                    </span>
+                </div>
+                {(quest.xp ?? 0) > 0 && (
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${
+                        quest.completed
+                            ? "bg-green-50 dark:bg-green-900/20"
+                            : "bg-blue-50 dark:bg-blue-900/10"
+                    }`}>
+                        <Star
+                            size={14}
+                            className={quest.completed ? "text-green-500" : "text-blue-500"}
+                            fill="currentColor"
+                        />
+                        <span className={`text-xs font-bold ${quest.completed ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"}`}>
+                            {quest.completed ? `+${quest.xp} XP earned` : `${quest.xp} XP`}
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );
