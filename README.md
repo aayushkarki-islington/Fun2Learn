@@ -1,6 +1,8 @@
-# Fun2Learn
+# Fun2Learn 
 
 A gamified e-learning platform built as a Final Year Project. Fun2Learn brings Duolingo-style engagement mechanics to online education — tutors create structured courses, students progress through interactive lesson roadmaps, and a full gamification layer keeps learners motivated.
+
+**Try Now:** https://main.d2826nkxpr52kp.amplifyapp.com/
 
 ---
 
