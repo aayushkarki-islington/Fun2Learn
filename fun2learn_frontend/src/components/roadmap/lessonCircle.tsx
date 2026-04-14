@@ -38,12 +38,12 @@ const LessonCircle = ({ lesson, onEdit, onDelete, onQuestions }: LessonCirclePro
                 </div>
 
                 {/* Hover action menu */}
-                <div className="hidden group-hover:flex absolute left-20 top-0 bg-white dark:bg-gray-700 rounded-lg shadow-xl p-2 gap-2 z-20 border-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+                <div className="hidden group-hover:flex absolute left-20 top-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-2 gap-2 z-20 border-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={onEdit}
-                        className="px-3 py-1 shadow-none bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center gap-1"
+                        className="px-3 py-1 shadow-none rounded text-xs flex items-center gap-1"
                     >
                         <Pencil size={12} /> Edit
                     </Button>
@@ -51,7 +51,7 @@ const LessonCircle = ({ lesson, onEdit, onDelete, onQuestions }: LessonCirclePro
                         variant="ghost"
                         size="sm"
                         onClick={onQuestions}
-                        className="px-3 py-1 shadow-none bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center gap-1"
+                        className="px-3 py-1 shadow-none rounded text-xs flex items-center gap-1"
                     >
                         <HelpCircle size={12} /> Questions
                     </Button>

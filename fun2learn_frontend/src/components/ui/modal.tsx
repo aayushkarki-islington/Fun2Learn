@@ -43,7 +43,7 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                 onClick={onClose}
             />
 
@@ -55,7 +55,8 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
                     <Button
                         variant="ghost"
                         onClick={onClose}
-                        className="w-8 h-8 p-0 shadow-none hover:bg-white/20 text-white"
+                        size="icon"
+                        className="shadow-none hover:bg-white/20 text-white"
                     >
                         <X size={20} />
                     </Button>

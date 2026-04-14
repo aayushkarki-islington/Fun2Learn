@@ -20,6 +20,7 @@ import {
     addLesson, editLesson, deleteLesson,
     getLessonQuestions,
 } from "@/api/courseApi";
+import { truncate } from "@/app/utils/commonUtils";
 
 const CourseEditorPage = () => {
     const params = useParams();
@@ -260,7 +261,7 @@ const CourseEditorPage = () => {
                             <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
                             <div>
                                 <h1 className="font-lilita text-2xl text-gray-800 dark:text-gray-100">{course.name}</h1>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{course.description}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{truncate(course.description, 100)}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">

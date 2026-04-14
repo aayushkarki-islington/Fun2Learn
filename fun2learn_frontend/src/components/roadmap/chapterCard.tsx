@@ -48,19 +48,19 @@ const ChapterCard = ({
                     <div className="flex gap-2">
                         <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
                             onClick={onEditChapter}
-                            className={`w-8 h-8 p-0 shadow-none ${color.bg} ${color.hover}`}
+                            className={`p-0 shadow-none ${color.bg} ${color.hover}`}
                         >
                             <Pencil size={14} />
                         </Button>
                         <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
                             onClick={onDeleteChapter}
                             className="w-8 h-8 p-0 shadow-none bg-red-100 hover:bg-red-200"
                         >
-                            <Trash2 size={14} />
+                            <Trash2 size={14}/>
                         </Button>
                     </div>
                 </div>
