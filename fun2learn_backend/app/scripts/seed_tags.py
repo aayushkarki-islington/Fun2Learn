@@ -98,12 +98,14 @@ TAGS = [
     "Neuroscience",
 
     # ── Languages ──
+    "Foreign Language",
     "English",
     "Spanish",
     "French",
     "German",
     "Chinese",
     "Japanese",
+    "Nepali",
     "Korean",
     "Arabic",
     "Hindi",

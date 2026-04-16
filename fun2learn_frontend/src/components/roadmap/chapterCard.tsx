@@ -6,10 +6,42 @@ import type { ChapterDetail } from "@/models/types";
 import LessonCircle from "./lessonCircle";
 
 const CHAPTER_COLORS = [
-    { border: "border-blue-500", text: "text-blue-600", bg: "bg-blue-100", hover: "hover:bg-blue-200", addHoverBorder: "hover:border-blue-500", addHoverText: "hover:text-blue-500", addHoverBg: "hover:bg-blue-50" },
-    { border: "border-purple-500", text: "text-purple-600", bg: "bg-purple-100", hover: "hover:bg-purple-200", addHoverBorder: "hover:border-purple-500", addHoverText: "hover:text-purple-500", addHoverBg: "hover:bg-purple-50" },
-    { border: "border-orange-500", text: "text-orange-600", bg: "bg-orange-100", hover: "hover:bg-orange-200", addHoverBorder: "hover:border-orange-500", addHoverText: "hover:text-orange-500", addHoverBg: "hover:bg-orange-50" },
-    { border: "border-green-500", text: "text-green-600", bg: "bg-green-100", hover: "hover:bg-green-200", addHoverBorder: "hover:border-green-500", addHoverText: "hover:text-green-500", addHoverBg: "hover:bg-green-50" },
+    {
+        border: "border-blue-500 dark:border-blue-400",
+        text: "text-blue-600",
+        bg: "bg-blue-100 dark:bg-blue-900",
+        hover: "hover:bg-blue-200 dark:hover:bg-blue-800",
+        addHoverBorder: "hover:border-blue-500 dark:hover:border-blue-400",
+        addHoverText: "hover:text-blue-500",
+        addHoverBg: "hover:bg-blue-50 dark:hover:bg-blue-900"
+    },
+    {
+        border: "border-purple-500 dark:border-purple-400",
+        text: "text-purple-600",
+        bg: "bg-purple-100 dark:bg-purple-900",
+        hover: "hover:bg-purple-200 dark:hover:bg-purple-800",
+        addHoverBorder: "hover:border-purple-500 dark:hover:border-purple-400",
+        addHoverText: "hover:text-purple-500",
+        addHoverBg: "hover:bg-purple-50 dark:hover:bg-purple-900"
+    },
+    {
+        border: "border-orange-500 dark:border-orange-400",
+        text: "text-orange-600",
+        bg: "bg-orange-100 dark:bg-orange-900",
+        hover: "hover:bg-orange-200 dark:hover:bg-orange-800",
+        addHoverBorder: "hover:border-orange-500 dark:hover:border-orange-400",
+        addHoverText: "hover:text-orange-500",
+        addHoverBg: "hover:bg-orange-50 dark:hover:bg-orange-900"
+    },
+    {
+        border: "border-green-500 dark:border-green-400",
+        text: "text-green-600",
+        bg: "bg-green-100 dark:bg-green-900",
+        hover: "hover:bg-green-200 dark:hover:bg-green-800",
+        addHoverBorder: "hover:border-green-500 dark:hover:border-green-400",
+        addHoverText: "hover:text-green-500",
+        addHoverBg: "hover:bg-green-50 dark:hover:bg-green-900"
+    },
 ];
 
 interface ChapterCardProps {
@@ -58,7 +90,7 @@ const ChapterCard = ({
                             variant="ghost"
                             size="icon"
                             onClick={onDeleteChapter}
-                            className="w-8 h-8 p-0 shadow-none bg-red-100 hover:bg-red-200"
+                            className="w-8 h-8 p-0 shadow-none bg-red-100 hover:bg-red-200 dark:bg-red-800 dark:hover:bg-red-700"
                         >
                             <Trash2 size={14}/>
                         </Button>

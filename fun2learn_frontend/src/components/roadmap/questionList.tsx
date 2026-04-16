@@ -190,10 +190,10 @@ const QuestionList = ({ isOpen, onClose, lessonId, lessonName, questions, onQues
                                     <span className="text-sm text-gray-700 dark:text-gray-300 truncate flex-1">{att.file_name}</span>
                                     <Button
                                         variant="ghost"
-                                        size="sm"
+                                        size="icon"
                                         onClick={() => handleDeleteAttachment(att.id)}
                                         disabled={isDeletingAttachment === att.id}
-                                        className="shrink-0 w-6 h-6 p-0 shadow-none rounded hover:bg-red-100 dark:hover:bg-red-900/30"
+                                        className="shrink-0 w-6 h-6 shadow-none rounded hover:bg-red-100 dark:hover:bg-red-900/30"
                                     >
                                         {isDeletingAttachment === att.id
                                             ? <Loader2 size={12} className="animate-spin text-red-500" />
@@ -430,7 +430,7 @@ const QuestionList = ({ isOpen, onClose, lessonId, lessonName, questions, onQues
                                 {/* Delete button */}
                                 <Button
                                     variant="ghost"
-                                    size="sm"
+                                    size="icon"
                                     onClick={() => handleDeleteQuestion(q.id)}
                                     disabled={deletingId === q.id}
                                     className="w-8 h-8 p-0 shadow-none bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 ml-2 shrink-0"

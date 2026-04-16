@@ -65,6 +65,8 @@ export interface UserSummary {
     image_path?: string | null;
     current_rank?: string | null;
     is_following: boolean;
+    gender: string;
+    role: string;
 }
 
 export interface CourseSummary {

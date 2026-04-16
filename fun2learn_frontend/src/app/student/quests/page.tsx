@@ -97,20 +97,22 @@ const QuestCard = ({ quest }: { quest: DailyQuest }) => {
 
             {/* Rewards */}
             <div className="mt-4 flex items-center gap-2 flex-wrap">
-                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${
-                    quest.completed
-                        ? "bg-green-50 dark:bg-green-900/20"
-                        : "bg-yellow-50 dark:bg-yellow-900/10"
-                }`}>
-                    <Gem
-                        size={14}
-                        className={quest.completed ? "text-green-500" : "text-yellow-500"}
-                        fill="currentColor"
-                    />
-                    <span className={`text-xs font-bold ${quest.completed ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}>
-                        {quest.completed ? `+${quest.gems} earned` : `${quest.gems} gems`}
-                    </span>
-                </div>
+                {(quest.gems ?? 0) > 0 && (
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${
+                        quest.completed
+                            ? "bg-green-50 dark:bg-green-900/20"
+                            : "bg-yellow-50 dark:bg-yellow-900/10"
+                    }`}>
+                        <Gem
+                            size={14}
+                            className={quest.completed ? "text-green-500" : "text-yellow-500"}
+                            fill="currentColor"
+                        />
+                        <span className={`text-xs font-bold ${quest.completed ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}>
+                            {quest.completed ? `+${quest.gems} earned` : `${quest.gems} gems`}
+                        </span>
+                    </div>
+                )}
                 {(quest.xp ?? 0) > 0 && (
                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${
                         quest.completed

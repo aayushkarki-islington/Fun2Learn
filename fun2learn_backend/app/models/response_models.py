@@ -191,6 +191,8 @@ class UserSummaryDetail(BaseModel):
     username: Optional[str] = None
     image_path: Optional[str] = None
     current_rank: Optional[str] = None
+    gender: str = 'male'
+    role: str = 'learner'
     is_following: bool = False
 
 

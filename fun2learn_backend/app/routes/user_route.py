@@ -31,6 +31,7 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 USERS_BUCKET = os.getenv("AWS_USERS_BUCKET_NAME", "")
+COURSES_BUCKET = os.getenv("AWS_S3_BUCKET_NAME", "")
 
 # ─── /me ─────────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ def _build_user_profile(target_user: User, viewer_user_id: str, db: Session) -> 
                 name=course.badge.name,
                 badge_type=course.badge.badge_type,
                 icon_name=course.badge.icon_name,
-                image_url=course.badge.image_url,
+                image_url=get_presigned_url_from_path(course.badge.image_url, COURSES_BUCKET) if course.badge.image_url is not None else None,
                 course_id=course.badge.course_id,
             ))
 
@@ -174,7 +175,7 @@ def _build_user_profile(target_user: User, viewer_user_id: str, db: Session) -> 
                     name=course.badge.name,
                     badge_type=course.badge.badge_type,
                     icon_name=course.badge.icon_name,
-                    image_url=course.badge.image_url,
+                    image_url=get_presigned_url_from_path(course.badge.image_url, COURSES_BUCKET) if course.badge.image_url is not None else None,
                     course_id=course.badge.course_id,
                 )
             tutor_courses.append(TutorProfileCourse(
@@ -229,6 +230,8 @@ def _build_user_summary(u: User, viewer_user_id: str, db: Session) -> UserSummar
         full_name=u.full_name,
         username=u.username,
         image_path=get_presigned_url_from_path(u.image_path, USERS_BUCKET),
+        geneder=u.gender,
+        role=u.role,
         current_rank=inv.current_rank if inv else "bronze",
         is_following=am_following,
     )
@@ -435,6 +438,8 @@ async def get_followers(
                 image_path=get_presigned_url_from_path(follower.image_path, USERS_BUCKET),
                 current_rank=inv.current_rank if inv else "bronze",
                 is_following=am_following,
+                role=follower.role,
+                gender=follower.gender
             ))
 
         return GetFollowersResponse(status="success", message="Followers retrieved", users=users, count=len(users))
@@ -468,6 +473,8 @@ async def get_following(
                 image_path=get_presigned_url_from_path(target.image_path, USERS_BUCKET),
                 current_rank=inv.current_rank if inv else "bronze",
                 is_following=True,
+                gender=target.gender,
+                role=target.role
             ))
 
         return GetFollowingResponse(status="success", message="Following retrieved", users=users, count=len(users))

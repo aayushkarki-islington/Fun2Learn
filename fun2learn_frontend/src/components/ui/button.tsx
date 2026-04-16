@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import { cn } from "@/app/utils/commonUtils";
 
 interface ButtonProps {
     type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
@@ -44,13 +45,22 @@ const Button = ({
             type={type}
             onClick={onClick}
             disabled={disabled || isLoading}
-            className={`
-                rounded-lg font-semibold transition-all duration-150 shadow-lg
-                ${variantClasses[variant]}
-                ${sizeClasses[size]}
-                ${(isLoading || disabled) ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-105'}
-                ${className}
-            `}
+            className={cn(
+                // 1. Base Styles
+                "rounded-lg font-semibold transition-all duration-150 shadow-lg",
+                
+                // 2. Variant and Size Styles
+                variantClasses[variant],
+                sizeClasses[size],
+                
+                // 3. Conditional Styles
+                (isLoading || disabled) 
+                    ? 'cursor-not-allowed opacity-60' 
+                    : 'cursor-pointer hover:scale-105',
+                    
+                // 4. Overrides (Priority)
+                className
+            )}
         >
             {isLoading ? (
                 <span className="flex items-center justify-center gap-2">

@@ -134,7 +134,10 @@ const CourseCard = ({ course, onDelete }: CourseCardProps) => {
                     <Button
                         variant="ghost"
                         size="md"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/tutor/course/${course.id}/prepublish`)
+                        }}
                     >
                         <Settings size={20} />
                     </Button>

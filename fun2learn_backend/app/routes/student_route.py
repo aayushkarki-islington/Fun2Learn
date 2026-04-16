@@ -135,7 +135,7 @@ DAILY_QUEST_DEFINITIONS = [
         "icon": "flame",
         "quest_type": "streak_today",
         "goal": 1,
-        "gems": 15,
+        "gems": 0,
         "xp": 30,
     },
     {
@@ -145,7 +145,7 @@ DAILY_QUEST_DEFINITIONS = [
         "icon": "zap",
         "quest_type": "lessons_today",
         "goal": 3,
-        "gems": 20,
+        "gems": 0,
         "xp": 50,
     },
     {

@@ -52,8 +52,9 @@ const SidePanel = ({ isOpen, onClose, title, subtitle, children, footer, width =
                     </div>
                     <Button
                         variant="ghost"
+                        size="icon"
                         onClick={onClose}
-                        className="w-10 h-10 p-0 shadow-none bg-white/20 hover:bg-white/30 text-white"
+                        className="w-10 h-10 shadow-none bg-white/20 hover:bg-white/30 text-white"
                     >
                         <X size={20} />
                     </Button>

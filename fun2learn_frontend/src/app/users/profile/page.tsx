@@ -137,14 +137,16 @@ function UserCard({
     return (
         <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 transition-all">
             <div onClick={() => onViewProfile(user.user_id)} className="cursor-pointer">
-                <Avatar imagePath={user.image_path} fullName={user.full_name} rank={user.current_rank ?? "bronze"} size="sm" />
+                <Avatar imagePath={user.image_path} role={user.role} gender={user.gender} fullName={user.full_name} rank={user.current_rank ?? "bronze"} size="sm" />
             </div>
             <div className="flex-1 min-w-0" onClick={() => onViewProfile(user.user_id)} role="button">
                 <p className="font-bold text-sm text-gray-800 dark:text-gray-100 truncate cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition-colors">{user.full_name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{user.username ? `@${user.username}` : ""}</p>
             </div>
             <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold ${cfg.color} hidden sm:block`}>{cfg.label}</span>
+                {user.role == "tutor" ?
+                    <TutorBadge /> : <span className={`text-xs font-bold ${cfg.color} hidden sm:block mr-2`}>{cfg.label}</span>
+                }
                 {user.is_following ? (
                     <button onClick={() => onUnfollow(user.user_id)} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all border-2 border-transparent">
                         <UserCheck size={12} />Following
