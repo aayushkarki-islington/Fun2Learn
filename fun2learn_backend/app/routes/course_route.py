@@ -1589,6 +1589,8 @@ async def get_course_badge(
             raise NotFoundException("Course")
         if course.created_by != current_user.user_id:
             raise UnauthorizedUserException()
+        
+        s3_bucket = os.getenv('AWS_S3_BUCKET_NAME', 'fun2learn-attachments')
 
         badge = course.badge
         badge_detail = None
@@ -1598,7 +1600,7 @@ async def get_course_badge(
                 name=badge.name,
                 badge_type=badge.badge_type,
                 icon_name=badge.icon_name,
-                image_url=badge.image_url,
+                image_url=get_presigned_url_from_path(badge.image_url, s3_bucket),
                 course_id=badge.course_id
             )
 
